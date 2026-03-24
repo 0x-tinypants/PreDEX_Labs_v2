@@ -11,9 +11,19 @@ import "./window.css";
 
 export default function WagerPage() {
   /* =========================================
-     PARAM
+     PARAM (🔥 FIXED)
   ========================================= */
-  const { escrowAddress } = useParams<{ escrowAddress: string }>();
+  const { id } = useParams<{ id: string }>();
+
+  if (!id) {
+    return (
+      <div className="page-center">
+        <div className="empty-state">Invalid wager link</div>
+      </div>
+    );
+  }
+
+  const escrowAddress = id; // now guaranteed string
 
   /* =========================================
      STATE
@@ -38,27 +48,50 @@ export default function WagerPage() {
   /* =========================================
      FIND IN LOCAL STATE
   ========================================= */
-  const tile = tiles.find(
+  const localTile = tiles.find(
     (t) =>
       t.escrowAddress?.toLowerCase() === escrowAddress.toLowerCase()
   );
 
-  const finalTile = tile || fetchedTile;
+  const finalTile = localTile || fetchedTile;
 
   /* =========================================
-     FETCH IF NOT FOUND (🔥 KEY)
+     FETCH IF NOT FOUND (🔥 CLEANED)
   ========================================= */
   useEffect(() => {
-    if (!tile && escrowAddress && !fetching) {
+    if (!escrowAddress) return;
+    if (localTile) return; // already have it
+
+    let active = true;
+
+    async function fetchTile() {
       setFetching(true);
 
-      getTileByAddress(escrowAddress)
-        .then((res) => {
-          if (res) setFetchedTile(res);
-        })
-        .finally(() => setFetching(false));
+      try {
+        const res = await getTileByAddress(escrowAddress);
+        if (active && res) {
+          setFetchedTile(res);
+        }
+      } catch (err) {
+        console.error("Fetch wager failed:", err);
+      } finally {
+        if (active) setFetching(false);
+      }
     }
-  }, [tile, escrowAddress, fetching, getTileByAddress]);
+
+    fetchTile();
+
+    return () => {
+      active = false;
+    };
+  }, [escrowAddress, localTile, getTileByAddress]);
+
+  /* =========================================
+     RESET ON ID CHANGE (🔥 IMPORTANT)
+  ========================================= */
+  useEffect(() => {
+    setFetchedTile(null);
+  }, [escrowAddress]);
 
   /* =========================================
      LOADING STATE
@@ -77,7 +110,9 @@ export default function WagerPage() {
   if (!finalTile) {
     return (
       <div className="page-center">
-        <div className="empty-state">Fetching wager...</div>
+        <div className="empty-state">
+          {fetching ? "Fetching wager..." : "Wager not found"}
+        </div>
       </div>
     );
   }
