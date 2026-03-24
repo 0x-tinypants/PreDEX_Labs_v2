@@ -1,23 +1,13 @@
-import { ref, get } from "firebase/database";
-import { db } from "../../src/services/firebase/config";
-
 export async function getWagerForOG(escrowAddress: string) {
-  const snapshot = await get(ref(db, `wagers/${escrowAddress}`));
-
-  if (!snapshot.exists()) return null;
-
-  const meta = snapshot.val();
-
-  const stake = meta.amount ? parseFloat(meta.amount) : 0;
-  const hasOpponent = !!meta.opponent;
+  // TEMP MOCK DATA (to verify OG pipeline works)
 
   return {
     escrowAddress,
-    statement: meta.statement || "",
-    creator: meta.creator,
-    opponent: meta.opponent || null,
-    stake,
-    pot: hasOpponent ? stake * 2 : stake,
-    status: hasOpponent ? "LOCKED" : "OPEN",
+    statement: "test test test for the logs",
+    creator: "0xe71d...561f",
+    opponent: "0xa876...304b",
+    stake: 0.001,
+    pot: 0.002,
+    status: "OPEN",
   };
 }
