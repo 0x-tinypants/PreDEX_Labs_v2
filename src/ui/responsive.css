@@ -1,0 +1,36 @@
+/* MOBILE */
+
+@media (max-width: 360px) {
+  .btn,
+  .btn-connect,
+  .btn-create {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .control-bar {
+    gap: 6px;
+  }
+
+  .logo {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* SMALL DEVICES */
+
+@media (max-width: 480px) {
+  .app-shell {
+    border-left: none;
+    border-right: none;
+  }
+}
+
+/* TABLET */
+
+@media (min-width: 768px) {
+  .app-shell {
+    max-width: 420px;
+  }
+}

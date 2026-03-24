@@ -1,0 +1,195 @@
+/* ================================
+   PAGE SHELL (FULL FOCUS MODE)
+================================ */
+.wager-page-shell {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 80px;
+  min-height: 100vh;
+
+  background: radial-gradient(
+    circle at top,
+    #111 0%,
+    #0a0a0a 100%
+  );
+}
+
+/* ================================
+   WINDOW CONTAINER
+================================ */
+.wager-window {
+  width: 100%;
+  max-width: 420px;
+  background: #0f0f0f;
+
+  /* retro bevel */
+  border-top: 2px solid #3a3a3a;
+  border-left: 2px solid #3a3a3a;
+  border-bottom: 2px solid #000;
+  border-right: 2px solid #000;
+
+  box-shadow:
+    0 0 30px rgba(0, 255, 120, 0.08),
+    inset 0 0 20px rgba(0, 0, 0, 0.6);
+
+  animation: windowPop 0.25s ease-out;
+}
+
+/* ================================
+   HEADER (OS STYLE)
+================================ */
+.window-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: linear-gradient(#1a1a1a, #141414);
+  padding: 8px 10px;
+  font-size: 12px;
+
+  border-bottom: 1px solid #2a2a2a;
+}
+
+/* subtle glow line */
+.window-header::after {
+  content: "";
+  display: block;
+  height: 1px;
+  width: 100%;
+  background: rgba(0, 255, 120, 0.15);
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+.window-controls span {
+  margin-left: 6px;
+  opacity: 0.6;
+  font-size: 11px;
+}
+
+/* ================================
+   BODY
+================================ */
+.window-body {
+  padding: 14px;
+}
+
+/* ================================
+   CONTEXT TEXT
+================================ */
+.window-context {
+  font-size: 13px;
+  margin-bottom: 12px;
+  color: #f1c40f;
+}
+
+/* ================================
+   TILE OVERRIDE (IMPORTANT)
+   Makes tile feel embedded, not separate
+================================ */
+.wager-window .tile {
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  box-shadow: none;
+}
+
+/* ================================
+   ACTION BAR
+================================ */
+.window-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid #2a2a2a;
+}
+
+/* ================================
+   BUTTON BASE
+================================ */
+.btn {
+  padding: 14px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+  width: 100%;
+}
+
+/* ================================
+   CONNECT (secondary)
+================================ */
+.btn.secondary {
+  background: #2a2a2a;
+  color: #ccc;
+}
+
+/* ================================
+   PRIMARY CTA (ACCEPT)
+================================ */
+.btn.primary {
+  background: #00ff88;
+  color: #000;
+  font-weight: bold;
+
+  box-shadow: 0 0 14px rgba(0, 255, 120, 0.45);
+}
+
+/* ================================
+   FOCUS CTA INSIDE TILE
+================================ */
+.focus-cta {
+  padding: 16px;
+  text-align: center;
+  font-weight: bold;
+  margin-top: 10px;
+  cursor: pointer;
+  border: 1px solid #2a2a2a;
+}
+
+/* CONNECT */
+.focus-cta.connect {
+  background: linear-gradient(#2f2f2f, #1f1f1f);
+  color: #fff;
+  border: 1px solid #3a3a3a;
+
+  box-shadow:
+    inset 0 0 4px rgba(255,255,255,0.05),
+    0 0 8px rgba(255,255,255,0.05);
+
+  transition: all 0.15s ease;
+}
+
+.focus-cta.connect:hover {
+  background: linear-gradient(#3a3a3a, #252525);
+  transform: translateY(-1px);
+}
+
+/* ACCEPT */
+.focus-cta.accept {
+  background: #00ff88;
+  color: #000;
+  box-shadow: 0 0 14px rgba(0, 255, 120, 0.5);
+}
+
+/* NEUTRAL */
+.focus-cta.neutral {
+  background: #1a1a1a;
+  color: #888;
+}
+
+/* ================================
+   ANIMATION
+================================ */
+@keyframes windowPop {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

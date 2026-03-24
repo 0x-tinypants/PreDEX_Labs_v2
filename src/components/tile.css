@@ -1,0 +1,423 @@
+/* =========================================
+   TILE CONTAINER
+========================================= */
+.tile {
+  border: 2px solid #555;
+  background: #111;
+  padding: 12px;
+  border-radius: 4px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  box-shadow: inset 0 0 0 1px #000;
+
+  height: auto;          /* 🔑 */
+  min-height: unset;     /* 🔑 */
+  overflow: visible;     /* 🔑 */
+}
+
+.tile-feed {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  align-items: stretch;   /* 🔑 THIS FIXES EVERYTHING */
+  gap: 12px;
+}
+/* =========================================
+   GENERIC ROW SYSTEM
+========================================= */
+
+.tile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* =========================================
+   HEADER (ROW 1)
+========================================= */
+
+.tile-header {
+  font-size: 11px;
+  opacity: 0.85;
+
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 4px;
+}
+
+.type {
+  opacity: 0.5;
+  letter-spacing: 0.5px;
+}
+
+.status.open {
+  color: #f1c40f;
+}
+
+.status.locked {
+  color: #2ecc71;
+}
+
+.status.proposed {
+  color: #3498db;
+}
+
+.status.resolved {
+  color: #777;
+}
+
+.time {
+  color: #aaa;
+}
+
+/* =========================================
+   MAIN (ROW 2)
+========================================= */
+
+.tile-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.matchup {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.statement {
+  font-size: 11px;
+  opacity: 0.6;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================
+   ACTION BLOCK (ROW 3)
+========================================= */
+
+.tile-action-block {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.tile-action-label {
+  font-size: 10px;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* =========================================
+   ACTION BUTTONS
+========================================= */
+
+.tile-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.tile-actions.single {
+  display: block;
+}
+
+.tile-actions.single .tile-btn {
+  width: 100%;
+}
+
+.tile-actions-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tile-action-ids {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  opacity: 0.35;
+  letter-spacing: 0.5px;
+}
+
+.tile-action-ids span {
+  flex: 1;
+  text-align: center;
+}
+
+/* =========================================
+   BUTTON BASE (RETRO STYLE)
+========================================= */
+
+.tile-btn {
+  flex: 1;
+  padding: 8px;
+
+  border: 2px solid #666;
+  background: #1a1a1a;
+  color: #fff;
+
+  font-size: 12px;
+  cursor: pointer;
+
+  box-shadow:
+    inset -1px -1px 0 #000,
+    inset 1px 1px 0 #333;
+}
+
+.tile-btn:active {
+  box-shadow:
+    inset 1px 1px 0 #000,
+    inset -1px -1px 0 #333;
+}
+
+/* =========================================
+   BUTTON VARIANTS
+========================================= */
+
+.tile-btn.yes {
+  border-color: #2ecc71;
+  color: #2ecc71;
+}
+
+.tile-btn.no {
+  border-color: #e67e22;
+  color: #e67e22;
+}
+
+.tile-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* =========================================
+   CLAIM STATE (🔥 NEW FINAL STATE)
+========================================= */
+
+.tile-actions.claim-state {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* message above claim */
+.tile-sub {
+  font-size: 10px;
+  opacity: 0.6;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+/* full-width claim button */
+.tile-btn.claim {
+  width: 100%;
+  padding: 10px;
+
+  border: 2px solid #2ecc71;
+  background: #0f1f14;
+  color: #2ecc71;
+
+  font-weight: bold;
+  cursor: pointer;
+
+  box-shadow: inset 0 0 0 1px #000;
+}
+
+.tile-btn.claim:hover {
+  background: #132a1c;
+}
+
+/* =========================================
+   PENDING
+========================================= */
+
+.tile-btn.pending {
+  width: 100%;
+  padding: 10px;
+
+  background: #151515;
+  border: 2px solid #2a2a2a;
+
+  color: #555;
+  cursor: not-allowed;
+
+  box-shadow: inset 0 0 0 1px #000;
+}
+
+/* =========================================
+   RESULT
+========================================= */
+
+.tile-btn.result {
+  width: 100%;
+  padding: 10px;
+
+  border: 2px solid #2ecc71;
+
+  background: #0f1f14;
+  color: #2ecc71;
+
+  font-weight: bold;
+  cursor: default;
+
+  box-shadow: inset 0 0 0 1px #000;
+}
+
+/* =========================================
+   FOOTER (ROW 4)
+========================================= */
+
+.tile-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 10px;
+  opacity: 0.75;
+
+  border-top: 1px solid #2a2a2a;
+  padding-top: 6px;
+}
+
+.tile-footer .meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  opacity: 0.3;
+}
+
+.expand {
+  margin-left: 8px;
+
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 4px 8px;
+
+  font-size: 12px;
+  color: #bbb;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.expand:hover {
+  border-color: #666;
+  color: #fff;
+}
+
+.expand.open {
+  transform: rotate(180deg);
+  color: #58dd53;
+  border-color: #58dd53;
+}
+
+.expanded-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  width: 100%;
+  padding: 4px 0;
+}
+
+.expanded-row .label {
+  font-size: 10px;
+  color: #666;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.expanded-row span {
+  color: #ccc;
+  font-weight: 500;
+}
+
+/* =========================================
+   EXPANDED PANEL
+========================================= */
+.tile-expanded {
+  padding-top: 10px;
+  margin-top: 6px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  width: 100%;
+  position: relative;     /* 🔑 FIX */
+  overflow: visible;      /* 🔑 FIX */
+
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.tile-expanded::before {
+  content: "";
+  display: block;
+  height: 1px;
+  width: 100%;
+
+  background: linear-gradient(to right,
+      transparent,
+      #2a2a2a,
+      transparent);
+
+  margin-bottom: 6px;
+}
+
+.tile {
+  transition: all 0.2s ease;
+}
+
+.tile-expanded {
+  animation: expandFade 0.2s ease;
+}
+
+@keyframes expandFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* etherscan link */
+.link {
+  color: #58dd53;
+  text-decoration: none;
+  opacity: 0.8;
+}
+
+.link:hover {
+  opacity: 1;
+}
+
+.invite-icon {
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+  color: #bbb;
+  cursor: pointer;
+}
+
+.invite-icon:hover {
+  border-color: #58dd53;
+  color: #58dd53;
+}
