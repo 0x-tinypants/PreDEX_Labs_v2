@@ -1,8 +1,8 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/((?!assets|favicon.ico).*)",
-      "destination": "/index.html"
+      "src": "/api/og",
+      "dest": "/api/og/route.tsx"
     }
   ]
 }
