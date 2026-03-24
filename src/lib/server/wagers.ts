@@ -1,5 +1,5 @@
 import { ref, get } from "firebase/database";
-import { db } from "../src/services/firebase/config";
+import { db } from "../../services/firebase/config";
 
 export async function getWagerForOG(escrowAddress: string) {
   const snapshot = await get(ref(db, `wagers/${escrowAddress}`));
