@@ -1,36 +1,39 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-
     /* TARGET */
     "target": "ES2023",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
-
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
     /* MODULE */
     "module": "ESNext",
     "moduleResolution": "bundler",
     "moduleDetection": "force",
-
     /* REACT */
     "jsx": "react-jsx",
-
     /* VITE */
-    "types": ["vite/client"],
+    "types": [
+      "vite/client"
+    ],
     "noEmit": true,
-
     /* 🔥 CRITICAL (JSON + ABI SUPPORT) */
     "resolveJsonModule": true,
     "esModuleInterop": true,
-
     /* COMPAT */
     "useDefineForClassFields": true,
     "skipLibCheck": true,
-
     /* LINTING (SAFE STRICT) */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "api",
+    "lib"
+  ]
 }
