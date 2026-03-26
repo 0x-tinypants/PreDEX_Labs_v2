@@ -1,25 +1,39 @@
-import { getWagerForOG } from "../src/lib/server/wagers";
-
-export default async function handler(req: any, res: any) {
-  const escrow = req.query.escrow;
-
-  console.log("WAGER API HIT:", escrow);
-
-  if (!escrow) {
-    return res.status(400).json({ error: "Missing escrow" });
-  }
-
+export default async function handler(req: Request): Promise<Response> {
   try {
-    const wager = await getWagerForOG(escrow);
+    const { searchParams } = new URL(req.url);
+    const escrow = searchParams.get("escrow");
 
-    console.log("WAGER RESULT:", wager);
+    if (!escrow) {
+      return new Response(JSON.stringify(null), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
-    return res.status(200).json(wager);
-  } catch (e: any) {
-    console.error("WAGER ERROR:", e);
-    return res.status(500).json({
-      error: "Failed to fetch wager",
-      message: e.message,
+    const url = `https://predex-22ce1-default-rtdb.firebaseio.com/wagers/${escrow}.json`;
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) {
+      return new Response(JSON.stringify(null), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const data = await res.json();
+
+    return new Response(JSON.stringify(data || null), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    return new Response(JSON.stringify(null), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
   }
 }
