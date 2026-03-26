@@ -1,26 +1,38 @@
 import React from "react";
 import { ImageResponse } from "@vercel/og";
-import { getWagerForOG } from "../src/lib/server/wagers"; // adjust path if needed
 
 export const config = {
   runtime: "edge",
 };
 
 export default async function handler(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const escrow = searchParams.get("escrow");
+  const url = new URL(req.url);
+  const escrow = url.searchParams.get("escrow");
 
-  let wager = null;
+  let wager: any = null;
 
-  try {
-    if (escrow) {
-      wager = await getWagerForOG(escrow);
+  // ✅ SAFE FETCH (no hardcoded domain)
+  if (escrow) {
+    try {
+      const base = url.origin;
+
+      const res = await fetch(
+        `${base}/api/wager?escrow=${escrow}`,
+        {
+          // prevent hanging
+          cache: "no-store",
+        }
+      );
+
+      if (res.ok) {
+        wager = await res.json();
+      }
+    } catch (e) {
+      console.log("OG fetch error:", e);
     }
-  } catch (e) {
-    console.log("OG fetch error:", e);
   }
 
-  // fallback values
+  // ✅ DATA MAPPING
   const title = wager
     ? `${short(wager.creator)} vs ${short(wager.opponent)}`
     : "PreDEX Wager";
@@ -48,7 +60,7 @@ export default async function handler(req: Request) {
         },
       },
       [
-        // TITLE (Players)
+        // TITLE
         React.createElement(
           "div",
           {
@@ -111,7 +123,7 @@ export default async function handler(req: Request) {
   );
 }
 
-// helper
+// ✅ helper
 function short(addr?: string | null) {
   if (!addr) return "Open";
   return addr.slice(0, 6);
