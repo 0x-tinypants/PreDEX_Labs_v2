@@ -36,7 +36,7 @@ export default function handler(req: Request) {
               fontWeight: "700",
             },
           },
-          "PreDEX Wager"
+          "PreDEX Wager v2 TEST"
         ),
 
         // SUBTEXT (THIS IS WHAT YOU WERE MISSING)
