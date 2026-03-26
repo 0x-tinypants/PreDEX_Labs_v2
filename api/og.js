@@ -12,15 +12,23 @@ export default async function handler(req, res) {
     let wager = null;
 
     if (data && typeof data === "object") {
-      if (escrow && data[escrow]) {
-        wager = data[escrow];
-      } else {
-        const firstKey = Object.keys(data)[0];
-        wager = data[firstKey];
+      const rawWager =
+        escrow && data[escrow]
+          ? data[escrow]
+          : data[Object.keys(data)[0]];
+
+      try {
+        wager =
+          typeof rawWager === "string"
+            ? JSON.parse(rawWager)
+            : rawWager;
+      } catch {
+        wager = null;
       }
     }
 
-    if (!wager) {
+    // 🚨 fallback ONLY if truly null
+    if (!wager || typeof wager !== "object") {
       return res.status(200).send(`
         <html>
           <body style="background:black;color:#d9ff00;display:flex;align-items:center;justify-content:center;height:100vh;font-size:48px;">
