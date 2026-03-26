@@ -8,44 +8,40 @@ export const config = {
 export default async function handler(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    let escrow = searchParams.get("escrow");
+    const escrowParam = searchParams.get("escrow");
 
     let wager: any = null;
 
     try {
-      // 🔥 STEP 1 — If no escrow, grab one automatically
-      if (!escrow) {
-        const listRes = await fetch(
-          "https://predex-22ce1-default-rtdb.firebaseio.com/wagers.json"
-        );
+      // 🔥 ALWAYS fetch full wagers (because DB is stringified)
+      const res = await fetch(
+        "https://predex-22ce1-default-rtdb.firebaseio.com/wagers.json"
+      );
 
-        if (listRes.ok) {
-          const all = await listRes.json();
+      if (res.ok) {
+        const raw = await res.json();
 
-          if (all) {
-            const keys = Object.keys(all);
-            if (keys.length > 0) {
-              escrow = keys[0]; // 👈 auto-select real wager
-            }
+        // 🔥 CRITICAL FIX
+        const parsed =
+          typeof raw === "string" ? JSON.parse(raw) : raw;
+
+        if (parsed && typeof parsed === "object") {
+          // ✅ Try exact escrow match
+          if (escrowParam && parsed[escrowParam]) {
+            wager = parsed[escrowParam];
+          } else {
+            // ✅ fallback to first key
+            const firstKey = Object.keys(parsed)[0];
+            wager = parsed[firstKey];
           }
         }
       }
-
-      // 🔥 STEP 2 — Fetch specific wager
-      if (escrow) {
-        const res = await fetch(
-          `https://predex-22ce1-default-rtdb.firebaseio.com/wagers/${escrow}.json`
-        );
-
-        if (res.ok) {
-          wager = await res.json();
-        }
-      }
-    } catch {
+    } catch (e) {
+      console.log("FETCH ERROR:", e);
       wager = null;
     }
 
-    // ✅ FALLBACK UI (only if DB truly empty)
+    // ❌ ONLY show fallback if truly no data
     if (!wager) {
       return new ImageResponse(
         (
@@ -57,29 +53,29 @@ export default async function handler(req: Request) {
               alignItems: "center",
               justifyContent: "center",
               background: "black",
-              color: "white",
+              color: "#d9ff00",
               fontSize: 48,
               fontWeight: 700,
             }}
           >
-            PreDEX Wager
+            DEBUG FALLBACK 123
           </div>
         ),
         { width: 1200, height: 630 }
       );
     }
 
-    // ✅ SAFE DATA EXTRACTION
-    const creator = wager?.creator || "Unknown";
-    const opponent = wager?.opponent || "Open";
-    const amount = Number(wager?.amount || 0);
-    const hasOpponent = !!wager?.opponent;
+    // ✅ DATA
+    const creator = wager.creator || "Unknown";
+    const opponent = wager.opponent || "Open";
+    const amount = Number(wager.amount || 0);
+    const hasOpponent = !!wager.opponent;
 
     const pot = hasOpponent ? amount * 2 : amount;
-    const statement = wager?.statement || "No statement provided";
+    const statement = wager.statement || "No statement provided";
     const status = hasOpponent ? "LOCKED" : "OPEN";
 
-    // ✅ MAIN OG IMAGE
+    // ✅ RENDER REAL CARD
     return new ImageResponse(
       (
         <div
@@ -98,7 +94,7 @@ export default async function handler(req: Request) {
             {creator} vs {opponent}
           </div>
 
-          <div style={{ fontSize: 40, opacity: 0.8 }}>
+          <div style={{ fontSize: 40, opacity: 0.85 }}>
             {statement}
           </div>
 
@@ -110,7 +106,9 @@ export default async function handler(req: Request) {
       ),
       { width: 1200, height: 630 }
     );
-  } catch {
+  } catch (err) {
+    console.log("TOP LEVEL ERROR:", err);
+
     return new ImageResponse(
       (
         <div
@@ -121,7 +119,7 @@ export default async function handler(req: Request) {
             alignItems: "center",
             justifyContent: "center",
             background: "black",
-            color: "white",
+            color: "#d9ff00",
             fontSize: 48,
             fontWeight: 700,
           }}
