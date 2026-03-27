@@ -23,6 +23,10 @@ export default async function handler(req: Request) {
       `https://predex-22ce1-default-rtdb.firebaseio.com/wagers/${escrow}.json`
     );
 
+    if (!res.ok) {
+      return new Response("Wager not found", { status: 404 });
+    }
+
     const wager = await res.json();
 
     /* =========================================
@@ -38,7 +42,7 @@ export default async function handler(req: Request) {
     const status = wager?.opponent ? "LOCKED" : "OPEN";
 
     /* =========================================
-       RETURN IMAGE (THIS IS THE IMPORTANT PART)
+       RETURN IMAGE (THIS IS THE KEY)
     ========================================= */
     return new ImageResponse(
       (
@@ -55,7 +59,7 @@ export default async function handler(req: Request) {
         >
           <div
             style={{
-              width: "700px",
+              width: "720px",
               background: "#111",
               border: "3px solid #444",
               padding: "40px",
@@ -86,7 +90,7 @@ export default async function handler(req: Request) {
                 display: "flex",
                 justifyContent: "space-between",
                 fontSize: 20,
-                opacity: 0.8,
+                opacity: 0.85,
               }}
             >
               <span>Pot: ${amount}</span>
@@ -98,6 +102,9 @@ export default async function handler(req: Request) {
       {
         width: 1200,
         height: 630,
+        headers: {
+          "Content-Type": "image/png",
+        },
       }
     );
   } catch (err) {
