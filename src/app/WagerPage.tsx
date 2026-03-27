@@ -11,7 +11,7 @@ import "./window.css";
 
 export default function WagerPage() {
   /* =========================================
-     PARAM (🔥 FIXED)
+     PARAM
   ========================================= */
   const { id } = useParams<{ id: string }>();
 
@@ -23,44 +23,38 @@ export default function WagerPage() {
     );
   }
 
-  const escrowAddress = id; // now guaranteed string
+  const escrowAddress = id.toLowerCase();
 
   /* =========================================
      STATE
   ========================================= */
   const { tiles, loading, onIntent, getTileByAddress } = useWagers();
-  const { address, connect } = useWallet();
+
+  const {
+    address,
+    connectWeb3Auth,
+    connectMetaMask,
+  } = useWallet();
 
   const [fetchedTile, setFetchedTile] = useState<UITile | null>(null);
   const [fetching, setFetching] = useState(false);
 
   /* =========================================
-     GUARD
-  ========================================= */
-  if (!escrowAddress) {
-    return (
-      <div className="page-center">
-        <div className="empty-state">Invalid wager link</div>
-      </div>
-    );
-  }
-
-  /* =========================================
-     FIND IN LOCAL STATE
+     FIND LOCAL
   ========================================= */
   const localTile = tiles.find(
     (t) =>
-      t.escrowAddress?.toLowerCase() === escrowAddress.toLowerCase()
+      t.escrowAddress?.toLowerCase() === escrowAddress
   );
 
   const finalTile = localTile || fetchedTile;
 
   /* =========================================
-     FETCH IF NOT FOUND (🔥 CLEANED)
+     FETCH IF NEEDED
   ========================================= */
   useEffect(() => {
     if (!escrowAddress) return;
-    if (localTile) return; // already have it
+    if (localTile) return;
 
     let active = true;
 
@@ -87,14 +81,14 @@ export default function WagerPage() {
   }, [escrowAddress, localTile, getTileByAddress]);
 
   /* =========================================
-     RESET ON ID CHANGE (🔥 IMPORTANT)
+     RESET ON CHANGE
   ========================================= */
   useEffect(() => {
     setFetchedTile(null);
   }, [escrowAddress]);
 
   /* =========================================
-     LOADING STATE
+     LOADING
   ========================================= */
   if (loading && !finalTile) {
     return (
@@ -105,20 +99,58 @@ export default function WagerPage() {
   }
 
   /* =========================================
-     FETCHING STATE (DEEP LINK)
+     NOT FOUND
   ========================================= */
-  if (!finalTile) {
+  if (!finalTile && !fetching) {
     return (
       <div className="page-center">
-        <div className="empty-state">
-          {fetching ? "Fetching wager..." : "Wager not found"}
+        <div className="empty-state">Wager not found</div>
+      </div>
+    );
+  }
+
+  /* =========================================
+     🔥 AUTH GATE (CORE FLOW)
+  ========================================= */
+  if (!address) {
+    return (
+      <div className="wager-page-shell">
+        <div className="wager-window">
+
+          <div className="window-header">
+            <span>PreDEX</span>
+          </div>
+
+          <div className="window-body">
+
+            <div className="window-context">
+              You’ve been invited to a wager
+            </div>
+
+            <div className="window-actions">
+              <button
+                className="btn primary"
+                onClick={connectWeb3Auth}
+              >
+                Continue with Web3
+              </button>
+
+              <button
+                className="btn secondary"
+                onClick={connectMetaMask}
+              >
+                Use MetaMask
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
     );
   }
 
   /* =========================================
-     RENDER
+     RENDER (INSIDE APP)
   ========================================= */
   return (
     <div className="wager-page-shell">
@@ -126,7 +158,7 @@ export default function WagerPage() {
         tile={finalTile}
         viewer={address}
         onIntent={onIntent}
-        onConnect={connect}
+        onConnect={connectMetaMask}
       />
     </div>
   );

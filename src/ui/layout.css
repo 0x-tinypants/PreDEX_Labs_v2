@@ -1,76 +1,141 @@
-/* APP SHELL */
+/* =========================================
+   APP SHELL (WINDOW FRAME)
+========================================= */
 
 .app-shell {
   width: 100%;
   height: 100dvh;
-  max-width: 390px;
+  max-width: var(--app-max-width);
   margin: 0 auto;
 
   display: flex;
   flex-direction: column;
 
-  background: #1a1a1a;
+  background: var(--bg-base);
 
-  border-left: 2px solid #333;
-  border-right: 2px solid #333;
+  /* retro frame OR web3 soft edge */
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
 
-  overflow: visible;   /* 🔥 FIX */
+  border-radius: var(--radius-md);
+
+  /* 🔥 Web3 depth */
+  box-shadow: var(--shadow-soft);
+
+  overflow: hidden;
 }
 
-/* CONTROL BAR */
+/* =========================================
+   CONTROL BAR (TOP PANEL)
+========================================= */
 
 .control-bar {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
 
-  gap: 10px;
-  padding: 10px;
+  gap: 6px;
+  padding: 6px;
 
-  border-bottom: 2px solid #333;
+  background: var(--panel-shell);
+
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
+
+  border-radius: var(--radius-sm);
+
+  /* 🔥 Web3 glass */
+  backdrop-filter: var(--glass-blur, none);
+  box-shadow: var(--shadow-soft);
 }
 
 .control-bar button {
   width: 100%;
-  height: 38px;
+  height: var(--control-height-md);
 }
 
-/* TILE FEED */
+/* =========================================
+   TILE FEED (SCROLL AREA)
+========================================= */
 
 .tile-feed {
   flex: 1;
   overflow-y: auto;
 
-  padding: 12px;
+  padding: 6px;
 
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
+
+  background: var(--panel-well);
+
+  border-top: 2px solid var(--border-dark);
+  border-left: 2px solid var(--border-dark);
+  border-right: 2px solid var(--border-light);
+  border-bottom: 2px solid var(--border-light);
+
+  border-radius: var(--radius-sm);
+
+  /* 🔥 Web3 inner depth */
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.25);
 }
 
-/* CREATE PANEL */
+/* =========================================
+   CREATE PANEL
+========================================= */
 
 .create-wager-panel {
-  padding: 12px;
-  border-bottom: 2px solid #333;
-  background: #181818;
+  padding: 6px;
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
+
+  background: var(--panel-shell);
+
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
+
+  border-radius: var(--radius-sm);
+
+  /* 🔥 glass layer */
+  backdrop-filter: var(--glass-blur, none);
+  box-shadow: var(--shadow-soft);
 }
 
-/* EMPTY */
+/* =========================================
+   EMPTY STATE
+========================================= */
 
 .empty-state {
-  margin-top: 20px;
-  padding: 20px;
+  margin-top: 12px;
+  padding: 12px;
   text-align: center;
 
-  border: 2px dashed #444;
-  color: #888;
+  background: var(--panel-well);
+
+  border-top: 2px solid var(--border-dark);
+  border-left: 2px solid var(--border-dark);
+  border-right: 2px solid var(--border-light);
+  border-bottom: 2px solid var(--border-light);
+
+  border-radius: var(--radius-sm);
+
+  color: var(--text-secondary);
+
+  /* subtle depth */
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.2);
 }
 
-/* CREATE WAGER SYSTEM */
+/* =========================================
+   CREATE WAGER SYSTEM
+========================================= */
 
 .cw-section {
   display: flex;
@@ -80,7 +145,7 @@
 
 .cw-section p {
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -89,7 +154,13 @@
   gap: 6px;
 }
 
+/* =========================================
+   ACTIVE BUTTON STATE
+========================================= */
+
 .btn-active {
-  border-color: #6cff61;
-  background: linear-gradient(#3a3a3a, #1a1a1a);
+  border-top: 1px solid var(--inset-top);
+  border-left: 1px solid var(--inset-left);
+  border-right: 1px solid var(--inset-right);
+  border-bottom: 1px solid var(--inset-bottom);
 }

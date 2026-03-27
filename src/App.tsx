@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
 import { useWagers } from "./state/useWagers";
@@ -11,15 +11,28 @@ import Tile from "./components/Tile";
 import BottomNav from "./components/BottomNav";
 import WagerPage from "./app/WagerPage";
 
+import "./ui/tokens.css";
+import "./ui/themes/retro.css";
+import "./ui/themes/dark.css";
+
 import "./ui/base.css";
 import "./ui/buttons.css";
 import "./ui/layout.css";
 import "./ui/nav.css";
-import "./ui/responsive.css";
 
 export default function App() {
   /* =========================================
-     ROUTING CONTEXT (🔥 KEY ADD)
+     🔥 THEME INIT
+  ========================================= */
+  useEffect(() => {
+    const saved =
+      (localStorage.getItem("theme") as "retro" | "dark") || "retro";
+
+    document.documentElement.setAttribute("data-theme", saved);
+  }, []);
+
+  /* =========================================
+     ROUTING CONTEXT
   ========================================= */
   const location = useLocation();
   const isWagerPage = location.pathname.startsWith("/wager");
@@ -30,12 +43,18 @@ export default function App() {
   const [showCreate, setShowCreate] = useState(false);
 
   /* =========================================
-     WALLET (IDENTITY)
+     WALLET (ONLY IDENTITY NOW)
   ========================================= */
-  const { address, connect } = useWallet();
+  const wallet = useWallet();
+
+  const {
+    address,
+    connectMetaMask,
+    connectWeb3Auth,
+  } = wallet;
 
   /* =========================================
-     DATA + INTENT HANDLER
+     DATA
   ========================================= */
   const { tiles, loading, onIntent } = useWagers();
 
@@ -43,66 +62,60 @@ export default function App() {
      RENDER
   ========================================= */
   return (
-    <div className="app-shell">
+    <div className="app-root">
+      <div className="app-shell">
 
-      {/* 🔴 HIDE HEADER ON WAGER PAGE */}
-      {!isWagerPage && (
-        <Header
-          address={address}
-          onConnect={connect}
-        />
-      )}
+        {!isWagerPage && (
+          <Header
+            address={address}
+            onConnectMetaMask={connectMetaMask}
+            onConnectWeb3Auth={connectWeb3Auth}
+          />)}
 
-      <Routes>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <ControlBar
+                  onCreateClick={() =>
+                    setShowCreate((prev) => !prev)
+                  }
+                />
 
-        {/* 🟢 HOME FEED */}
-        <Route
-          path="/"
-          element={
-            <>
-              <ControlBar
-                onCreateClick={() =>
-                  setShowCreate((prev) => !prev)
-                }
-              />
+                {showCreate && <CreateWager wallet={wallet} />}
 
-              {showCreate && <CreateWager />}
+                <div className="tile-feed">
+                  {loading && <div>Loading...</div>}
 
-              {/* TILE FEED */}
-              <div className="tile-feed">
-                {loading && <div>Loading...</div>}
+                  {!loading && tiles.length === 0 && (
+                    <div className="empty-state">
+                      No wagers found
+                    </div>
+                  )}
 
-                {!loading && tiles.length === 0 && (
-                  <div className="empty-state">
-                    No wagers found
-                  </div>
-                )}
+                  {!loading &&
+                    tiles.map((tile) => (
+                      <Tile
+                        key={tile.escrowAddress}
+                        tile={tile}
+                        viewer={address}
+                        onIntent={onIntent}
+                      />
+                    ))}
+                </div>
+              </>
+            }
+          />
 
-                {!loading &&
-                  tiles.map((tile) => (
-                    <Tile
-                      key={tile.escrowAddress}   // 🔥 FIXED
-                      tile={tile}
-                      viewer={address}
-                      onIntent={onIntent}
-                    />
-                  ))}
-              </div>
-            </>
-          }
-        />
+          <Route
+            path="/wager/:id"
+            element={<WagerPage />}
+          />
+        </Routes>
 
-        {/* 🔗 WAGER PAGE */}
-        <Route
-          path="/wager/:escrowAddress"
-          element={<WagerPage />}
-        />
-
-      </Routes>
-
-      {/* 🔴 HIDE NAV ON WAGER PAGE */}
-      {!isWagerPage && <BottomNav />}
-
+        {!isWagerPage && <BottomNav />}
+      </div>
     </div>
   );
 }

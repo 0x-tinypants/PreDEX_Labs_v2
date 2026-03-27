@@ -1,0 +1,121 @@
+:root[data-theme="dark"] {
+  /* =========================================
+     BACKGROUND (PURE BLACK + LIGHT FIELD)
+  ========================================= */
+
+  --bg-base:
+    radial-gradient(circle at 20% 0%, rgba(108,255,97,0.10), transparent 40%),
+    radial-gradient(circle at 80% 100%, rgba(217,255,0,0.06), transparent 40%),
+    #020304;
+
+  /* =========================================
+     GLASS SURFACES (TRUE TRANSLUCENT)
+  ========================================= */
+
+  --surface-primary: rgba(255, 255, 255, 0.06);
+  --surface-secondary: rgba(255, 255, 255, 0.04);
+  --surface-tertiary: rgba(255, 255, 255, 0.02);
+  --surface-inset: rgba(0, 0, 0, 0.5);
+
+  /* 🔥 PANELS (NO COLOR — PURE GLASS) */
+  --panel-shell: rgba(255, 255, 255, 0.05);
+  --panel-well: rgba(0, 0, 0, 0.6);
+
+  /* =========================================
+     TEXT
+  ========================================= */
+
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.45);
+
+  /* =========================================
+     EDGES (LIGHT-BASED, NOT BOXES)
+  ========================================= */
+
+  --border-light: rgba(255, 255, 255, 0.18);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-mid: rgba(255, 255, 255, 0.08);
+  --border-dark: rgba(0, 0, 0, 0.7);
+  --border-deep: rgba(0, 0, 0, 0.9);
+
+  --border-strong: rgba(255, 255, 255, 0.2);
+
+  /* =========================================
+     ACCENTS (CONTROLLED NEON)
+  ========================================= */
+
+  --accent-primary: #6cff61;
+  --accent-secondary: #d9ff00;
+
+  /* =========================================
+     STATE COLORS
+  ========================================= */
+
+  --color-success: #6cff61;
+  --color-error: #ff4d4d;
+  --color-warning: #ffcc00;
+
+  /* =========================================
+     DISABLE RETRO BEVEL COMPLETELY
+  ========================================= */
+
+  --raise-top: transparent;
+  --raise-left: transparent;
+  --raise-right: transparent;
+  --raise-bottom: transparent;
+
+  --raise-inner-top: transparent;
+  --raise-inner-left: transparent;
+  --raise-inner-right: transparent;
+  --raise-inner-bottom: transparent;
+
+  --inset-top: transparent;
+  --inset-left: transparent;
+  --inset-right: transparent;
+  --inset-bottom: transparent;
+
+  --inset-inner-top: transparent;
+  --inset-inner-left: transparent;
+  --inset-inner-right: transparent;
+  --inset-inner-bottom: transparent;
+
+  /* =========================================
+     CONTROLS (GLASS BUTTONS)
+  ========================================= */
+
+  --control-face: rgba(255, 255, 255, 0.07);
+  --control-face-hover: rgba(255, 255, 255, 0.12);
+  --control-text: #ffffff;
+
+  /* =========================================
+     DEPTH (FLOATING LAYERS)
+  ========================================= */
+
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.7);
+  --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.9);
+
+  /* 🔥 subtle glow (NOT overpowering) */
+  --glow-primary: 0 0 18px rgba(108, 255, 97, 0.35);
+
+  /* =========================================
+     GLASS EFFECT (VISIBLE NOW)
+  ========================================= */
+
+  --glass-blur: blur(20px);
+
+  /* =========================================
+     SHAPE
+  ========================================= */
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* =========================================
+     INTERACTION
+  ========================================= */
+
+  --transition-fast: all 0.18s ease;
+  --press-transform: scale(0.96);
+}

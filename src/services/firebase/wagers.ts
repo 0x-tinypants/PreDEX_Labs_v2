@@ -2,10 +2,19 @@ import { ref, get, set } from "firebase/database";
 import { db } from "./config";
 
 /* =========================================
+   HELPERS
+========================================= */
+function normalizeAddress(address: string) {
+  return address.toLowerCase();
+}
+
+/* =========================================
    GET METADATA (READ)
 ========================================= */
 export async function getWagerMetadata(escrowAddress: string) {
-  const snapshot = await get(ref(db, `wagers/${escrowAddress}`));
+  const key = normalizeAddress(escrowAddress);
+
+  const snapshot = await get(ref(db, `wagers/${key}`));
 
   if (snapshot.exists()) {
     return snapshot.val();
@@ -26,18 +35,21 @@ export async function createWagerMetadata(
     amount?: string;
   }
 ) {
-  await set(ref(db, `wagers/${escrowAddress}`), {
+  const key = normalizeAddress(escrowAddress);
+
+  await set(ref(db, `wagers/${key}`), {
     ...data,
     createdAt: Date.now(),
   });
 }
 
-
 /* =========================================
    GET FULL TILE FOR DEEP LINK PAGE
 ========================================= */
 export async function getWagerByAddress(escrowAddress: string) {
-  const meta = await getWagerMetadata(escrowAddress);
+  const key = normalizeAddress(escrowAddress);
+
+  const meta = await getWagerMetadata(key);
 
   if (!meta) return null;
 
@@ -45,7 +57,7 @@ export async function getWagerByAddress(escrowAddress: string) {
   const hasOpponent = !!meta.opponent;
 
   return {
-    escrowAddress,
+    escrowAddress: key, // always normalized
     type: "P2P",
     creator: meta.creator,
     participants: [meta.creator, meta.opponent].filter(Boolean),

@@ -1,34 +1,158 @@
-/* BUTTON SYSTEM */
+/* =========================================
+   BUTTON SYSTEM (RETRO-FIRST, WEB3-AWARE)
+========================================= */
+
+/* =========================================
+   BASE BUTTON
+========================================= */
 
 .btn,
-.btn-connect {
-  background: linear-gradient(#444, #222);
-  border: 2px solid #666;
-  padding: 8px 12px;
-  cursor: pointer;
-  color: #fff;
-
-  height: 36px;
-  display: flex;
+.btn-connect,
+.btn-create {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  height: 32px;
+  padding: 4px 12px;
+
+  font-size: 12px;
+  font-family: var(--font-main);
+
+  background: var(--control-face);
+  color: var(--control-text);
+
+  /* retro bevel (disabled in web3 via tokens) */
+  border-top: 1px solid var(--raise-top);
+  border-left: 1px solid var(--raise-left);
+  border-right: 1px solid var(--raise-right);
+  border-bottom: 1px solid var(--raise-bottom);
+
+  outline: none;
+  border-radius: var(--radius-sm);
+
+  cursor: pointer;
+  user-select: none;
+
+  /* 🔥 NEW: allow theme-controlled depth */
+  box-shadow: var(--shadow-soft);
+
+  /* 🔥 NEW: glass support */
+  backdrop-filter: var(--glass-blur, none);
+
+  transition: var(--transition-fast, none);
+
+  position: relative;
 }
+
+/* =========================================
+   INNER BEVEL (RETRO ONLY)
+========================================= */
+
+.btn::after,
+.btn-connect::after,
+.btn-create::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  border-top: 1px solid var(--raise-inner-top);
+  border-left: 1px solid var(--raise-inner-left);
+  border-right: 1px solid var(--raise-inner-right);
+  border-bottom: 1px solid var(--raise-inner-bottom);
+}
+
+/* =========================================
+   HOVER
+========================================= */
 
 .btn:hover,
-.btn-connect:hover {
-  background: linear-gradient(#555, #333);
+.btn-connect:hover,
+.btn-create:hover {
+  background: var(--control-face-hover);
+
+  /* 🔥 Web3 glow kicks in */
+  box-shadow: var(--shadow-soft), var(--glow-primary);
 }
+
+/* =========================================
+   ACTIVE (PRESS)
+========================================= */
+
+.btn:active,
+.btn-connect:active,
+.btn-create:active {
+  border-top: 1px solid var(--inset-top);
+  border-left: 1px solid var(--inset-left);
+  border-right: 1px solid var(--inset-right);
+  border-bottom: 1px solid var(--inset-bottom);
+
+  /* 🔥 Web3 press */
+  transform: var(--press-transform, none);
+
+  box-shadow: var(--shadow-strong);
+}
+
+/* pressed inner bevel */
+.btn:active::after,
+.btn-connect:active::after,
+.btn-create:active::after {
+  border-top: 1px solid var(--inset-inner-top);
+  border-left: 1px solid var(--inset-inner-left);
+  border-right: 1px solid var(--inset-inner-right);
+  border-bottom: 1px solid var(--inset-inner-bottom);
+}
+
+/* =========================================
+   PRIMARY BUTTON
+========================================= */
 
 .btn-create {
-  background: linear-gradient(#6cff61, #2fa52a);
-  border: 2px solid #1b6e18;
-  color: #000;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
-.btn:active {
-  transform: translateY(1px);
-  border-color: #888;
-  background: linear-gradient(#222, #111);
+/* =========================================
+   CONNECT BUTTON
+========================================= */
+
+.btn-connect {
+  font-weight: 500;
+}
+
+/* =========================================
+   DISABLED
+========================================= */
+
+.btn:disabled,
+.btn-connect:disabled,
+.btn-create:disabled {
+  color: var(--text-muted);
+  background: var(--surface-inset);
+
+  border-top: 1px solid var(--border-mid);
+  border-left: 1px solid var(--border-mid);
+  border-right: 1px solid var(--border-dark);
+  border-bottom: 1px solid var(--border-dark);
+
+  cursor: not-allowed;
+
+  box-shadow: none;
+}
+
+/* =========================================
+   SIZE VARIANTS
+========================================= */
+
+.btn-sm {
+  height: 24px;
+  padding: 2px 8px;
+  font-size: 11px;
+}
+
+.btn-lg {
+  height: 36px;
+  padding: 6px 16px;
+  font-size: 13px;
 }

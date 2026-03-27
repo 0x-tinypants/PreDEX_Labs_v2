@@ -1,0 +1,137 @@
+:root {
+  /* =========================================
+     TYPOGRAPHY
+  ========================================= */
+  --font-main: Arial, Helvetica, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+
+  --line-height-tight: 1.2;
+  --line-height-base: 1.35;
+
+  /* =========================================
+     SPACING
+  ========================================= */
+  --space-2xs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+
+  /* =========================================
+     SHAPE LANGUAGE
+     Base system stays dual-theme compatible.
+     Retro theme can force all of these to 0.
+  ========================================= */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  /* =========================================
+     CORE SURFACES
+     These are neutral defaults that can be
+     overridden cleanly by each theme.
+  ========================================= */
+  --bg-base: #c3c7cb;
+  --surface-primary: #d4d0c8;
+  --surface-secondary: #ece9d8;
+  --surface-tertiary: #f3f1e8;
+  --surface-inset: #bfc3c8;
+
+  /* =========================================
+     TEXT
+  ========================================= */
+  --text-primary: #111111;
+  --text-secondary: #2f2f2f;
+  --text-muted: #5f5f5f;
+  --text-inverse: #ffffff;
+
+  /* =========================================
+     BORDERS / UI LINES
+     These matter more than glow/shadow in retro.
+  ========================================= */
+  --border-subtle: #808080;
+  --border-strong: #000000;
+  --border-light: #ffffff;
+  --border-mid: #c0c0c0;
+  --border-dark: #7b7b7b;
+  --border-deep: #404040;
+
+  /* =========================================
+     ACCENTS
+     Keep these generic so Web3 and Retro can
+     each reinterpret them in their own theme.
+  ========================================= */
+  --accent-primary: #008080;
+  --accent-secondary: #000080;
+
+  /* =========================================
+     STATE COLORS
+  ========================================= */
+  --color-success: #0a7a28;
+  --color-error: #a61b1b;
+  --color-warning: #a06a00;
+
+  /* =========================================
+     RETRO DEPTH SYSTEM
+     The key to authentic mechanical UI.
+  ========================================= */
+  --control-face: var(--surface-primary);
+  --control-face-hover: var(--surface-primary);
+  --control-text: var(--text-primary);
+
+  --panel-shell: var(--surface-primary);
+  --panel-well: var(--surface-secondary);
+
+  --raise-top: var(--border-light);
+  --raise-left: var(--border-light);
+  --raise-right: var(--border-dark);
+  --raise-bottom: var(--border-dark);
+
+  --raise-inner-top: #f7f7f7;
+  --raise-inner-left: #f7f7f7;
+  --raise-inner-right: var(--border-deep);
+  --raise-inner-bottom: var(--border-deep);
+
+  --inset-top: var(--border-dark);
+  --inset-left: var(--border-dark);
+  --inset-right: var(--border-light);
+  --inset-bottom: var(--border-light);
+
+  --inset-inner-top: var(--border-deep);
+  --inset-inner-left: var(--border-deep);
+  --inset-inner-right: #f7f7f7;
+  --inset-inner-bottom: #f7f7f7;
+
+  /* =========================================
+     SHADOW / EFFECT TOKENS
+     Kept for dual-theme compatibility.
+     Retro can use them sparingly or ignore them.
+  ========================================= */
+  --shadow-soft: none;
+  --shadow-strong: none;
+  --glow-primary: none;
+
+  /* =========================================
+     FOCUS / INTERACTION
+  ========================================= */
+  --focus-outline: 1px dotted #000000;
+  --focus-outline-offset: -2px;
+
+  /* =========================================
+     SIZING
+  ========================================= */
+  --control-height-sm: 26px;
+  --control-height-md: 32px;
+  --control-height-lg: 38px;
+
+  --app-max-width: 1100px;
+  --content-gutter: 16px;
+}

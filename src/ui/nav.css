@@ -1,69 +1,178 @@
-/* HEADER */
+/* =========================================
+   HEADER (SYSTEM BAR)
+========================================= */
 
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 
-  padding: 12px;
+  height: 40px;
+  padding: 0 6px; /* slightly tighter outer padding */
 
-  background: linear-gradient(#2e2e2e, #1a1a1a);
-  border-bottom: 2px solid #444;
+  background: var(--panel-shell);
+
+  /* raised bar */
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
 
   flex-shrink: 0;
 }
 
-.header-left {
+/* =========================================
+   HEADER SECTIONS
+========================================= */
+
+.header-left,
+.header-center,
+.header-right {
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
-.logo {
-  width: 28px;
+/* 🔥 LEFT — give breathing room */
+.header-left {
+  gap: 8px;
+  padding-left: 6px;
+}
+
+/* 🔥 CENTER — stop stretching */
+.header-center {
+  flex: 0 0 auto;
+  justify-content: center;
+}
+
+/* 🔥 RIGHT — balance spacing */
+.header-right {
+  padding-right: 6px;
+}
+
+/* =========================================
+   HEADER BUTTON CONTROL (CRITICAL FIX)
+========================================= */
+
+/* Dark toggle → compact */
+.header-center .btn {
+  width: 90px;
   height: 28px;
+  padding: 0 8px;
+}
+
+/* Connect Wallet → more presence */
+.header-right .btn {
+  min-width: 140px;
+  height: 28px;
+  padding: 0 12px;
+}
+
+/* =========================================
+   BRANDING
+========================================= */
+
+.logo {
+  width: 24px;
+  height: 24px;
 }
 
 .brand {
-  font-weight: bold;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-/* BOTTOM NAV */
+/* =========================================
+   BOTTOM NAV (CONTROL PANEL)
+========================================= */
 
 .bottom-nav {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 
-  gap: 8px;
-  padding: 10px;
+  gap: 4px;
+  padding: 6px;
 
-  border-top: 2px solid #333;
-  background: linear-gradient(#2a2a2a, #1a1a1a);
+  background: var(--panel-shell);
+
+  /* raised container */
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
 
   flex-shrink: 0;
 }
 
-.bottom-nav div {
-  background: linear-gradient(#3a3a3a, #1f1f1f);
-  border: 2px solid #666;
+/* =========================================
+   NAV BUTTONS (USE SYSTEM BUTTON LOGIC)
+========================================= */
 
-  height: 44px;
+.bottom-nav div {
+  height: 32px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  font-size: 13px;
-  color: #ddd;
+  font-size: 12px;
+  font-family: var(--font-main);
+
+  background: var(--control-face);
+  color: var(--control-text);
+
+  position: relative;
+
+  /* raised button */
+  border-top: 1px solid var(--raise-top);
+  border-left: 1px solid var(--raise-left);
+  border-right: 1px solid var(--raise-right);
+  border-bottom: 1px solid var(--raise-bottom);
 
   cursor: pointer;
+  user-select: none;
 }
 
-.bottom-nav div:hover {
-  background: linear-gradient(#4a4a4a, #2a2a2a);
+/* inner bevel */
+.bottom-nav div::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  border-top: 1px solid var(--raise-inner-top);
+  border-left: 1px solid var(--raise-inner-left);
+  border-right: 1px solid var(--raise-inner-right);
+  border-bottom: 1px solid var(--raise-inner-bottom);
 }
+
+/* =========================================
+   ACTIVE (PRESS)
+========================================= */
 
 .bottom-nav div:active {
-  background: linear-gradient(#222, #111);
-  border-color: #888;
+  border-top: 1px solid var(--inset-top);
+  border-left: 1px solid var(--inset-left);
+  border-right: 1px solid var(--inset-right);
+  border-bottom: 1px solid var(--inset-bottom);
+}
+
+.bottom-nav div:active::after {
+  border-top: 1px solid var(--inset-inner-top);
+  border-left: 1px solid var(--inset-inner-left);
+  border-right: 1px solid var(--inset-inner-right);
+  border-bottom: 1px solid var(--inset-inner-bottom);
+}
+
+/* =========================================
+   ACTIVE TAB (SELECTED STATE)
+========================================= */
+
+.bottom-nav .active {
+  border-top: 1px solid var(--inset-top);
+  border-left: 1px solid var(--inset-left);
+  border-right: 1px solid var(--inset-right);
+  border-bottom: 1px solid var(--inset-bottom);
+
+  font-weight: 600;
 }

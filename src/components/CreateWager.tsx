@@ -2,25 +2,14 @@
 
 import { useState } from "react";
 import { ethers } from "ethers";
-import factoryJson from "../blockchain/abis/PreDEXFactory.json";
+import { createEscrow } from "../services/contracts/factory";
 import { createWagerMetadata } from "../services/firebase/wagers";
+import { useWallet } from "../state/useWallet";
 
-/* =========================================
-   GLOBAL TYPE
-========================================= */
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
 
-/* =========================================
-   CONFIG
-========================================= */
-const FACTORY_ADDRESS = "0x3f2dFD882503048Fe3b57DA9A9C966B05263C6Ff";
-
-export default function CreateWager() {
-  /* =========================================
+export default function CreateWager({ wallet }: any) {
+  const { provider } = wallet;
+    /* =========================================
      STATE
   ========================================= */
   const [type, setType] = useState<"P2P" | "OPEN">("P2P");
@@ -29,16 +18,11 @@ export default function CreateWager() {
   const [opponent, setOpponent] = useState("");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
-
   /* =========================================
      SUBMIT
   ========================================= */
   const handleSubmit = async () => {
     try {
-      if (!window.ethereum) {
-        alert("MetaMask not detected");
-        return;
-      }
 
       if (!statement || !deadline || !opponent || !amount) {
         alert("Please fill all fields");
@@ -51,56 +35,45 @@ export default function CreateWager() {
 
       setLoading(true);
       console.log("🚀 Creating wager...");
+      console.log("WEB3 PROVIDER:", (window as any).web3authProvider);
 
       /* =========================================
-         CONNECT
+         PROVIDER
       ========================================= */
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      if (!provider) {
+        alert("No wallet connected");
+        return;
+      }
+      /* =========================================
+        🔥 CREATE ESCROW (NEW SERVICE)
+     ========================================= */
+      const { receipt } = await createEscrow(provider, {
+        opponent,
+        stakeEth: amount,
+        deadlineSecondsFromNow:
+          deadlineTimestamp - Math.floor(Date.now() / 1000),
+      });
+
+      console.log("⏳ Waiting for confirmation...");
+      console.log("✅ TX CONFIRMED:", receipt.hash);
+
       const signer = await provider.getSigner();
 
       /* =========================================
-         CONTRACT
+         🔥 EXTRACT ESCROW ADDRESS (UNCHANGED)
       ========================================= */
-      const factory = new ethers.Contract(
-        FACTORY_ADDRESS,
-        factoryJson.abi,
-        signer
-      );
-
-      /* =========================================
-         CREATE ESCROW
-      ========================================= */
-      const tx = await factory.createEscrow(
-        opponent,
-        ethers.parseEther(amount),
-        deadlineTimestamp,
-        {
-          value: ethers.parseEther(amount),
-        }
-      );
-
-      console.log("⏳ Waiting for confirmation...");
-      const receipt = await tx.wait();
-
-      console.log("✅ TX CONFIRMED:", receipt.hash);
-
-      /* =========================================
-         🔥 EXTRACT ESCROW ADDRESS (CLEAN)
-      ========================================= */
-
       let escrowAddress: string | null = null;
 
       for (const log of receipt.logs) {
         try {
-          const parsed = factory.interface.parseLog(log);
+          const iface = new ethers.Interface([
+            "event EscrowCreated(address indexed escrow, address indexed partyA, address indexed partyB, uint256 stakeAmount, uint256 fundingDeadline)"
+          ]);
+
+          const parsed = iface.parseLog(log);
 
           if (!parsed) continue;
 
-          console.log("🧠 EVENT:", parsed.name);
-          console.log("🧠 ARGS:", parsed.args);
-
-          // 🔥 EXPECTED: factory emits escrow address
-          // We grab FIRST valid address from args
           const values = Object.values(parsed.args);
 
           for (const val of values) {
@@ -115,7 +88,6 @@ export default function CreateWager() {
           }
 
           if (escrowAddress) break;
-
         } catch (e) {
           // ignore unrelated logs
         }
@@ -130,7 +102,7 @@ export default function CreateWager() {
       console.log("🎯 Escrow Address:", escrowAddress);
 
       /* =========================================
-         🔥 WRITE TO FIREBASE (CRITICAL)
+         🔥 FIREBASE WRITE (UNCHANGED)
       ========================================= */
       await createWagerMetadata(escrowAddress, {
         statement,
@@ -142,7 +114,7 @@ export default function CreateWager() {
       console.log("🔥 Firebase write complete");
 
       /* =========================================
-         RESET FORM
+         RESET
       ========================================= */
       setStatement("");
       setDeadline("");
@@ -150,7 +122,7 @@ export default function CreateWager() {
       setAmount("");
 
       /* =========================================
-         TEMP REFRESH (NEXT STEP WE REMOVE)
+         TEMP REFRESH
       ========================================= */
       setTimeout(() => {
         window.location.reload();

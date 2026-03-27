@@ -1,33 +1,47 @@
 /* =========================================
-   TILE CONTAINER
+   TILE CONTAINER (RETRO + WEB3 HYBRID)
 ========================================= */
+
 .tile {
-  border: 2px solid #555;
-  background: #111;
-  padding: 12px;
-  border-radius: 4px;
+  background: var(--panel-shell);
+
+  padding: 8px;
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 
-  box-shadow: inset 0 0 0 1px #000;
+  /* retro bevel OR web3 soft edge */
+  border-top: 2px solid var(--border-light);
+  border-left: 2px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
+  border-bottom: 2px solid var(--border-dark);
 
-  height: auto;          /* 🔑 */
-  min-height: unset;     /* 🔑 */
-  overflow: visible;     /* 🔑 */
+  border-radius: var(--radius-md);
+
+  /* 🔥 Web3 depth */
+  box-shadow: var(--shadow-soft);
+
+  /* 🔥 glass */
+  backdrop-filter: var(--glass-blur, none);
+
+  height: auto;
 }
+
+/* =========================================
+   FEED
+========================================= */
 
 .tile-feed {
   display: flex;
   flex-direction: column;
-
   width: 100%;
-  align-items: stretch;   /* 🔑 THIS FIXES EVERYTHING */
-  gap: 12px;
+  align-items: stretch;
+  gap: 6px;
 }
+
 /* =========================================
-   GENERIC ROW SYSTEM
+   ROW SYSTEM
 ========================================= */
 
 .tile-row {
@@ -37,61 +51,68 @@
 }
 
 /* =========================================
-   HEADER (ROW 1)
+   HEADER
 ========================================= */
 
 .tile-header {
   font-size: 11px;
-  opacity: 0.85;
+  color: var(--text-secondary);
 
-  border-bottom: 1px solid #2a2a2a;
   padding-bottom: 4px;
+
+  /* softer divider */
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .type {
-  opacity: 0.5;
-  letter-spacing: 0.5px;
-}
-
-.status.open {
-  color: #f1c40f;
-}
-
-.status.locked {
-  color: #2ecc71;
-}
-
-.status.proposed {
-  color: #3498db;
-}
-
-.status.resolved {
-  color: #777;
-}
-
-.time {
-  color: #aaa;
+  opacity: 0.7;
+  letter-spacing: 0.4px;
 }
 
 /* =========================================
-   MAIN (ROW 2)
+   STATUS
+========================================= */
+
+.status.open {
+  color: var(--accent-secondary);
+}
+
+.status.locked {
+  color: var(--color-success);
+}
+
+.status.proposed {
+  color: var(--accent-primary);
+}
+
+.status.resolved {
+  color: var(--text-secondary);
+}
+
+.time {
+  color: var(--text-secondary);
+}
+
+/* =========================================
+   MAIN
 ========================================= */
 
 .tile-main {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 3px;
+  gap: 2px;
 }
 
 .matchup {
-  font-weight: bold;
+  font-weight: 600;
   font-size: 13px;
+  color: var(--text-primary);
 }
 
 .statement {
   font-size: 11px;
-  opacity: 0.6;
+  color: var(--text-secondary);
 
   white-space: nowrap;
   overflow: hidden;
@@ -99,21 +120,20 @@
 }
 
 /* =========================================
-   ACTION BLOCK (ROW 3)
+   ACTION BLOCK
 ========================================= */
 
 .tile-action-block {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
+  gap: 4px;
 }
 
 .tile-action-label {
   font-size: 10px;
-  opacity: 0.5;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
 }
 
 /* =========================================
@@ -122,7 +142,7 @@
 
 .tile-actions {
   display: flex;
-  gap: 6px;
+  gap: 4px;
 }
 
 .tile-actions.single {
@@ -143,8 +163,8 @@
   display: flex;
   justify-content: space-between;
   font-size: 9px;
-  opacity: 0.35;
-  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  letter-spacing: 0.4px;
 }
 
 .tile-action-ids span {
@@ -153,125 +173,53 @@
 }
 
 /* =========================================
-   BUTTON BASE (RETRO STYLE)
+   TILE BUTTONS
 ========================================= */
 
 .tile-btn {
   flex: 1;
-  padding: 8px;
-
-  border: 2px solid #666;
-  background: #1a1a1a;
-  color: #fff;
-
-  font-size: 12px;
-  cursor: pointer;
-
-  box-shadow:
-    inset -1px -1px 0 #000,
-    inset 1px 1px 0 #333;
 }
 
-.tile-btn:active {
-  box-shadow:
-    inset 1px 1px 0 #000,
-    inset -1px -1px 0 #333;
-}
-
-/* =========================================
-   BUTTON VARIANTS
-========================================= */
-
-.tile-btn.yes {
-  border-color: #2ecc71;
-  color: #2ecc71;
-}
-
+.tile-btn.yes,
 .tile-btn.no {
-  border-color: #e67e22;
-  color: #e67e22;
-}
-
-.tile-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+  font-weight: 600;
 }
 
 /* =========================================
-   CLAIM STATE (🔥 NEW FINAL STATE)
+   CLAIM / STATES
 ========================================= */
 
 .tile-actions.claim-state {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-/* message above claim */
 .tile-sub {
   font-size: 10px;
-  opacity: 0.6;
-  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  letter-spacing: 0.4px;
   text-align: center;
 }
 
-/* full-width claim button */
 .tile-btn.claim {
   width: 100%;
-  padding: 10px;
-
-  border: 2px solid #2ecc71;
-  background: #0f1f14;
-  color: #2ecc71;
-
-  font-weight: bold;
-  cursor: pointer;
-
-  box-shadow: inset 0 0 0 1px #000;
 }
-
-.tile-btn.claim:hover {
-  background: #132a1c;
-}
-
-/* =========================================
-   PENDING
-========================================= */
 
 .tile-btn.pending {
   width: 100%;
-  padding: 10px;
-
-  background: #151515;
-  border: 2px solid #2a2a2a;
-
-  color: #555;
+  color: var(--text-secondary);
   cursor: not-allowed;
-
-  box-shadow: inset 0 0 0 1px #000;
 }
-
-/* =========================================
-   RESULT
-========================================= */
 
 .tile-btn.result {
   width: 100%;
-  padding: 10px;
-
-  border: 2px solid #2ecc71;
-
-  background: #0f1f14;
-  color: #2ecc71;
-
-  font-weight: bold;
+  color: var(--color-success);
   cursor: default;
-
-  box-shadow: inset 0 0 0 1px #000;
 }
 
 /* =========================================
-   FOOTER (ROW 4)
+   FOOTER
 ========================================= */
 
 .tile-footer {
@@ -280,144 +228,69 @@
   align-items: center;
 
   font-size: 10px;
-  opacity: 0.75;
+  color: var(--text-secondary);
 
-  border-top: 1px solid #2a2a2a;
-  padding-top: 6px;
+  padding-top: 4px;
+
+  border-top: 1px solid var(--border-subtle);
 }
 
 .tile-footer .meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .dot {
-  opacity: 0.3;
+  opacity: 0.4;
 }
+
+/* =========================================
+   EXPAND BUTTON
+========================================= */
 
 .expand {
-  margin-left: 8px;
-
-  background: transparent;
-  border: 1px solid #333;
-  border-radius: 4px;
-  padding: 4px 8px;
-
-  font-size: 12px;
-  color: #bbb;
-
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.expand:hover {
-  border-color: #666;
-  color: #fff;
+  margin-left: 6px;
 }
 
 .expand.open {
-  transform: rotate(180deg);
-  color: #58dd53;
-  border-color: #58dd53;
-}
-
-.expanded-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  width: 100%;
-  padding: 4px 0;
-}
-
-.expanded-row .label {
-  font-size: 10px;
-  color: #666;
-  letter-spacing: 0.5px;
-  flex-shrink: 0;
-}
-
-.expanded-row span {
-  color: #ccc;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 /* =========================================
    EXPANDED PANEL
 ========================================= */
+
 .tile-expanded {
-  padding-top: 10px;
-  margin-top: 6px;
+  margin-top: 4px;
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 
   width: 100%;
-  position: relative;     /* 🔑 FIX */
-  overflow: visible;      /* 🔑 FIX */
 
   font-size: 11px;
-  opacity: 0.9;
+  color: var(--text-primary);
+
+  padding: 6px;
+
+  /* glass inset */
+  background: var(--surface-secondary);
+  border-radius: var(--radius-sm);
+
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.3);
 }
 
-.tile-expanded::before {
-  content: "";
-  display: block;
-  height: 1px;
-  width: 100%;
+/* =========================================
+   LINKS + ICONS
+========================================= */
 
-  background: linear-gradient(to right,
-      transparent,
-      #2a2a2a,
-      transparent);
-
-  margin-bottom: 6px;
-}
-
-.tile {
-  transition: all 0.2s ease;
-}
-
-.tile-expanded {
-  animation: expandFade 0.2s ease;
-}
-
-@keyframes expandFade {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* etherscan link */
 .link {
-  color: #58dd53;
+  color: var(--accent-primary);
   text-decoration: none;
-  opacity: 0.8;
-}
-
-.link:hover {
-  opacity: 1;
 }
 
 .invite-icon {
-  background: transparent;
-  border: 1px solid #333;
-  border-radius: 4px;
-  padding: 4px 6px;
-  font-size: 12px;
-  color: #bbb;
-  cursor: pointer;
-}
-
-.invite-icon:hover {
-  border-color: #58dd53;
-  color: #58dd53;
+  color: var(--text-secondary);
 }

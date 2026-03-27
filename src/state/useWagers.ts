@@ -97,12 +97,17 @@ export function useWagers() {
           return {
             ...tile,
             statement: meta?.statement || "",
+            createdAt: meta?.createdAt || 0,
           };
         })
       );
       console.log("Tiles mapped:", mapped.length);
 
-      setTiles(mapped);
+      const sorted = mapped.sort((a: any, b: any) => {
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      });
+
+      setTiles(sorted);
     } catch (err: any) {
       console.error("[useWagers] ERROR", err);
       setError(err?.message ?? "Failed to load wagers");

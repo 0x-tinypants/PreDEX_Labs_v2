@@ -1,195 +1,140 @@
-/* ================================
-   PAGE SHELL (FULL FOCUS MODE)
-================================ */
+/* =========================================
+   PAGE SHELL (MATCH APP FEED)
+========================================= */
 .wager-page-shell {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 80px;
-  min-height: 100vh;
 
-  background: radial-gradient(
-    circle at top,
-    #111 0%,
-    #0a0a0a 100%
-  );
+  min-height: 100vh;
+  padding-top: 60px;
+  padding-left: 12px;
+  padding-right: 12px;
+
+  background: var(--bg-primary);
 }
 
-/* ================================
-   WINDOW CONTAINER
-================================ */
+/* =========================================
+   INVITE CONTAINER (JUST A BIG TILE)
+========================================= */
 .wager-window {
   width: 100%;
   max-width: 420px;
-  background: #0f0f0f;
 
-  /* retro bevel */
-  border-top: 2px solid #3a3a3a;
-  border-left: 2px solid #3a3a3a;
-  border-bottom: 2px solid #000;
-  border-right: 2px solid #000;
+  background: var(--tile-bg);
+  border: 2px solid var(--border-primary);
 
-  box-shadow:
-    0 0 30px rgba(0, 255, 120, 0.08),
-    inset 0 0 20px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--shadow-raised);
 
-  animation: windowPop 0.25s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  padding: 10px;
 }
 
-/* ================================
-   HEADER (OS STYLE)
-================================ */
+/* =========================================
+   INVITE HEADER (LIKE TILE HEADER)
+========================================= */
 .window-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  background: linear-gradient(#1a1a1a, #141414);
-  padding: 8px 10px;
   font-size: 12px;
+  color: var(--text-secondary);
 
-  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-primary);
 }
 
-/* subtle glow line */
-.window-header::after {
-  content: "";
-  display: block;
-  height: 1px;
-  width: 100%;
-  background: rgba(0, 255, 120, 0.15);
-  position: absolute;
-  left: 0;
-  bottom: 0;
-}
-
-.window-controls span {
-  margin-left: 6px;
-  opacity: 0.6;
-  font-size: 11px;
-}
-
-/* ================================
-   BODY
-================================ */
-.window-body {
-  padding: 14px;
-}
-
-/* ================================
-   CONTEXT TEXT
-================================ */
+/* =========================================
+   INVITE MESSAGE (PRIMARY MOMENT)
+========================================= */
 .window-context {
   font-size: 13px;
-  margin-bottom: 12px;
-  color: #f1c40f;
+  font-weight: bold;
+
+  padding: 10px;
+
+  border: 2px solid var(--border-primary);
+  background: var(--surface-sunken);
+
+  text-align: center;
 }
 
-/* ================================
-   TILE OVERRIDE (IMPORTANT)
-   Makes tile feel embedded, not separate
-================================ */
-.wager-window .tile {
-  background: transparent;
-  border: 1px solid #2a2a2a;
-  box-shadow: none;
-}
-
-/* ================================
-   ACTION BAR
-================================ */
-.window-actions {
+/* =========================================
+   TILE AREA (MAIN CONTENT)
+========================================= */
+.window-body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px;
-  border-top: 1px solid #2a2a2a;
 }
 
-/* ================================
-   BUTTON BASE
-================================ */
+/* remove extra styling so tile looks native */
+.wager-window .tile {
+  margin: 0;
+}
+
+/* =========================================
+   ACTIONS (CONNECT / ACCEPT)
+========================================= */
+.window-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* =========================================
+   BUTTON SYSTEM (MATCH APP BUTTONS)
+========================================= */
 .btn {
-  padding: 14px;
-  font-size: 13px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid var(--border-primary);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+
+  font-size: 12px;
   cursor: pointer;
-  border: none;
-  text-align: center;
-  width: 100%;
+
+  box-shadow: var(--shadow-raised);
 }
 
-/* ================================
-   CONNECT (secondary)
-================================ */
-.btn.secondary {
-  background: #2a2a2a;
-  color: #ccc;
+/* hover */
+.btn:hover {
+  filter: brightness(1.05);
 }
 
-/* ================================
-   PRIMARY CTA (ACCEPT)
-================================ */
+/* pressed */
+.btn:active {
+  box-shadow: var(--shadow-inset);
+  transform: translateY(1px);
+}
+
+/* primary (ACCEPT / CONTINUE) */
 .btn.primary {
-  background: #00ff88;
+  background: var(--accent-bg, #6cff61);
   color: #000;
   font-weight: bold;
-
-  box-shadow: 0 0 14px rgba(0, 255, 120, 0.45);
 }
 
-/* ================================
-   FOCUS CTA INSIDE TILE
-================================ */
-.focus-cta {
-  padding: 16px;
-  text-align: center;
-  font-weight: bold;
-  margin-top: 10px;
-  cursor: pointer;
-  border: 1px solid #2a2a2a;
+/* secondary */
+.btn.secondary {
+  background: var(--surface-raised);
+  color: var(--text-secondary);
 }
 
-/* CONNECT */
-.focus-cta.connect {
-  background: linear-gradient(#2f2f2f, #1f1f1f);
-  color: #fff;
-  border: 1px solid #3a3a3a;
-
-  box-shadow:
-    inset 0 0 4px rgba(255,255,255,0.05),
-    0 0 8px rgba(255,255,255,0.05);
-
-  transition: all 0.15s ease;
-}
-
-.focus-cta.connect:hover {
-  background: linear-gradient(#3a3a3a, #252525);
-  transform: translateY(-1px);
-}
-
-/* ACCEPT */
-.focus-cta.accept {
-  background: #00ff88;
-  color: #000;
-  box-shadow: 0 0 14px rgba(0, 255, 120, 0.5);
-}
-
-/* NEUTRAL */
-.focus-cta.neutral {
-  background: #1a1a1a;
-  color: #888;
-}
-
-/* ================================
-   ANIMATION
-================================ */
-@keyframes windowPop {
-  from {
-    transform: scale(0.96);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
+/* =========================================
+   MOBILE
+========================================= */
+@media (max-width: 480px) {
+  .wager-page-shell {
+    padding-top: 40px;
   }
 }

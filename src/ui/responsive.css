@@ -1,36 +1,61 @@
-/* MOBILE */
+/* =========================================
+   SMALL MOBILE (TIGHTEN UI)
+========================================= */
 
 @media (max-width: 360px) {
   .btn,
   .btn-connect,
   .btn-create {
-    padding: 6px 8px;
-    font-size: 12px;
+    padding: 4px 6px;
+    font-size: 11px;
   }
 
   .control-bar {
-    gap: 6px;
+    gap: 4px;
   }
 
   .logo {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 }
 
-/* SMALL DEVICES */
+/* =========================================
+   MOBILE (DEFAULT EXPERIENCE)
+   No layout breaking. Keep full frame.
+========================================= */
 
 @media (max-width: 480px) {
   .app-shell {
-    border-left: none;
-    border-right: none;
+    width: 100%;
+    max-width: 100%;
   }
 }
 
-/* TABLET */
+/* =========================================
+   DESKTOP LOCK (FORCE MOBILE EXPERIENCE)
+========================================= */
 
 @media (min-width: 768px) {
+  .app-root {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    padding-top: 24px;
+  }
+
   .app-shell {
-    max-width: 420px;
+    width: 390px;
+    min-width: 390px;
+    max-width: 390px;
+
+    height: 90vh;
+
+    /* reinforce window feel */
+    border-top: 2px solid var(--border-light);
+    border-left: 2px solid var(--border-light);
+    border-right: 2px solid var(--border-dark);
+    border-bottom: 2px solid var(--border-dark);
   }
 }

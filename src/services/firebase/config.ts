@@ -1,7 +1,10 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
-// 🔐 Firebase config
+/* =========================================
+   🔐 FIREBASE CONFIG
+========================================= */
 const firebaseConfig = {
   apiKey: "AIzaSyD2-EAaamhXpWkGKrxFDKkX8sHnuAWh-w0",
   authDomain: "predex-22ce1.firebaseapp.com",
@@ -12,8 +15,14 @@ const firebaseConfig = {
   appId: "1:800069126085:web:3a422f7615c948bf93adac",
 };
 
-// 🚀 Initialize app
+/* =========================================
+   🚀 INIT APP
+========================================= */
 const app = initializeApp(firebaseConfig);
 
-// 🔥 Realtime DB instance (THIS is what we use everywhere)
+/* =========================================
+   🔥 SERVICES
+========================================= */
 export const db = getDatabase(app);
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();

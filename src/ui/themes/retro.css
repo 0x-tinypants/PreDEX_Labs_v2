@@ -1,0 +1,114 @@
+:root[data-theme="retro"] {
+  /* =========================================
+     BACKGROUND (OS BASE)
+  ========================================= */
+  --bg-base: #c0c0c0;
+
+  /* =========================================
+     SURFACES (WINDOW SYSTEM)
+  ========================================= */
+  --surface-primary: #d4d0c8;   /* window face */
+  --surface-secondary: #c0c0c0; /* outer shell */
+  --surface-tertiary: #e4e1d8;  /* lighter inner */
+  --surface-inset: #bfbfbf;     /* recessed wells */
+
+  --panel-shell: var(--surface-primary);
+  --panel-well: var(--surface-tertiary);
+
+  /* =========================================
+     TEXT
+  ========================================= */
+  --text-primary: #000000;
+  --text-secondary: #2a2a2a;
+  --text-muted: #555555;
+  --text-inverse: #ffffff;
+
+  /* =========================================
+     BORDERS (TRUE WIN95 SYSTEM)
+  ========================================= */
+  --border-light: #ffffff;
+  --border-mid: #c0c0c0;
+  --border-dark: #808080;
+  --border-deep: #404040;
+
+  --border-subtle: var(--border-dark);
+  --border-strong: var(--border-deep);
+
+  /* =========================================
+     BEVEL SYSTEM (CRITICAL)
+  ========================================= */
+
+  /* 🔼 RAISED (default) */
+  --raise-top: var(--border-light);
+  --raise-left: var(--border-light);
+  --raise-right: var(--border-dark);
+  --raise-bottom: var(--border-dark);
+
+  --raise-inner-top: #f7f7f7;
+  --raise-inner-left: #f7f7f7;
+  --raise-inner-right: var(--border-deep);
+  --raise-inner-bottom: var(--border-deep);
+
+  /* 🔽 PRESSED (inset) */
+  --inset-top: var(--border-dark);
+  --inset-left: var(--border-dark);
+  --inset-right: var(--border-light);
+  --inset-bottom: var(--border-light);
+
+  --inset-inner-top: var(--border-deep);
+  --inset-inner-left: var(--border-deep);
+  --inset-inner-right: #f7f7f7;
+  --inset-inner-bottom: #f7f7f7;
+
+  /* =========================================
+     CONTROLS (BUTTON BASE)
+  ========================================= */
+  --control-face: #d4d0c8;
+  --control-face-hover: #dcd8cf;
+  --control-text: #000000;
+
+  /* =========================================
+     ACCENTS (MINIMAL, FUNCTIONAL)
+  ========================================= */
+  --accent-primary: #000080; /* classic blue */
+  --accent-secondary: #008080;
+
+  /* =========================================
+     STATE COLORS
+  ========================================= */
+  --color-success: #006400;
+  --color-error: #800000;
+  --color-warning: #8a6a00;
+
+  /* =========================================
+     EFFECTS (DISABLED FOR PURITY)
+  ========================================= */
+  --shadow-soft: none;
+  --shadow-strong: none;
+  --glow-primary: none;
+
+  /* =========================================
+     SHAPE (STRICT)
+  ========================================= */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  /* =========================================
+     TYPOGRAPHY
+  ========================================= */
+  --font-main: "MS Sans Serif", Arial, sans-serif;
+
+  /* =========================================
+     INTERACTION
+  ========================================= */
+  --transition-fast: none;
+  --press-transform: none;
+
+  /* =========================================
+     BUTTON FALLBACK TOKENS
+  ========================================= */
+  --button-bg: var(--control-face);
+  --button-text: var(--control-text);
+  --button-border: var(--border-dark);
+}
