@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import { createEscrow } from "../services/contracts/factory";
 import { createWagerMetadata } from "../services/firebase/wagers";
-import { useWallet } from "../state/useWallet";
 
 
 export default function CreateWager({ wallet }: any) {
