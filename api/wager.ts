@@ -1,39 +1,34 @@
-export default async function handler(req: Request): Promise<Response> {
-  try {
-    const { searchParams } = new URL(req.url);
-    const escrow = searchParams.get("escrow");
+export const runtime = "edge";
 
-    if (!escrow) {
-      return new Response(JSON.stringify(null), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+export default async function handler(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const escrow = searchParams.get("escrow") || "";
+
+  const ogImage = `https://your-domain.vercel.app/api/og?escrow=${escrow}`;
+
+  return new Response(
+    `
+    <html>
+      <head>
+        <meta property="og:title" content="PreDEX Wager" />
+        <meta property="og:description" content="You've been invited to a wager" />
+        <meta property="og:image" content="${ogImage}" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+
+        <script>
+          window.location.href = "/wager/${escrow}";
+        </script>
+      </head>
+      <body style="background:black;color:white;display:flex;align-items:center;justify-content:center;height:100vh;">
+        Loading wager...
+      </body>
+    </html>
+    `,
+    {
+      headers: {
+        "Content-Type": "text/html",
+      },
     }
-
-    const url = `https://predex-22ce1-default-rtdb.firebaseio.com/wagers/${escrow}.json`;
-
-    const res = await fetch(url, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (!res.ok) {
-      return new Response(JSON.stringify(null), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const data = await res.json();
-
-    return new Response(JSON.stringify(data || null), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    return new Response(JSON.stringify(null), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  );
 }
