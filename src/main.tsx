@@ -2,14 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import process from "process";
+import { Buffer } from "buffer";
 
 import App from "./App";
 
-import { Buffer } from "buffer";
-
-window.Buffer = Buffer;
-
-/* 🔥 REQUIRED GLOBALS */
+/* ✅ REQUIRED GLOBALS (clean) */
 (globalThis as any).Buffer = Buffer;
 (globalThis as any).process = process;
 
