@@ -6,9 +6,14 @@ import { Buffer } from "buffer";
 
 import App from "./App";
 
-/* ✅ REQUIRED GLOBALS (clean) */
-(globalThis as any).Buffer = Buffer;
-(globalThis as any).process = process;
+/* ✅ SAFE GLOBAL POLYFILLS */
+if (!(globalThis as any).Buffer) {
+  (globalThis as any).Buffer = Buffer;
+}
+
+if (!(globalThis as any).process) {
+  (globalThis as any).process = process;
+}
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
