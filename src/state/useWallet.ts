@@ -1,59 +1,75 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { useNavigate } from "react-router-dom";
 
-import { Web3Auth } from "@web3auth/modal";
-import { WEB3AUTH_NETWORK } from "@web3auth/base";
-
-/* =========================================
-   CONFIG
-========================================= */
-const clientId = "BNbBnIObbC4CnFsKD-ImRpQ1Mq1GqbqoCZM1C11wteK8-9uBWTjJk8n_lFe3TEEfNIrmpjNWGyEPsO0kyHqVRW8";
+const PENDING_WAGER_PATH_KEY = "predex_pending_wager_path";
 
 export function useWallet() {
+  const { login, logout, authenticated } = usePrivy();
+  const { wallets } = useWallets();
+  const navigate = useNavigate();
+
   const [address, setAddress] = useState<string | undefined>();
-  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
-  const [walletType, setWalletType] = useState<"metamask" | "web3auth" | null>(null);
+  const [provider, setProvider] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [web3auth, setWeb3auth] = useState<Web3Auth | null>(null);
 
   /* =========================================
-     INIT WEB3AUTH
+     CONNECT (GOOGLE)
+  ========================================= */
+  const connectPrivy = async () => {
+    if (loading) return;
+
+    setLoading(true);
+
+    try {
+      await login({
+        loginMethods: ["google"],
+      });
+    } catch (err) {
+      console.error("Privy login error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* =========================================
+     SYNC WALLET (AFTER LOGIN ONLY)
   ========================================= */
   useEffect(() => {
-    const init = async () => {
-      try {
-        const web3authInstance = new Web3Auth({
-          clientId,
-          web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
-        });
+    const setup = async () => {
+      if (!authenticated || wallets.length === 0) return;
 
+      const wallet = wallets[0];
+      const provider = await wallet.getEthersProvider();
+      const signer = provider.getSigner();
+      const addr = await signer.getAddress();
 
-        await web3authInstance.init();
+      setProvider(provider);
+      setAddress(addr);
 
-        setWeb3auth(web3authInstance);
+      console.log("✅ wallet ready:", addr);
 
-        // ✅ restore session if exists
-        if (web3authInstance.connected && web3authInstance.provider) {
-          const provider = new ethers.BrowserProvider(web3authInstance.provider as any);
-          const signer = await provider.getSigner();
-          const address = await signer.getAddress();
+      /* =========================================
+         🔥 REDIRECT BACK TO WAGER IF NEEDED
+      ========================================= */
+      const pendingPath = sessionStorage.getItem(PENDING_WAGER_PATH_KEY);
 
-          setProvider(provider);
-          setAddress(address);
-          setWalletType("web3auth");
+      if (pendingPath) {
+        console.log("🔁 restoring pending wager path:", pendingPath);
 
-          console.log("🔁 Web3Auth restored:", address);
-        }
-      } catch (err) {
-        console.error("Web3Auth init error:", err);
+        sessionStorage.removeItem(PENDING_WAGER_PATH_KEY);
+
+        // IMPORTANT: replace so history is clean
+        navigate(pendingPath, { replace: true });
       }
     };
 
-    init();
-  }, []);
+    setup();
+  }, [authenticated, wallets, navigate]);
 
   /* =========================================
-     CONNECT METAMASK
+     METAMASK (OPTIONAL)
   ========================================= */
   const connectMetaMask = async () => {
     setLoading(true);
@@ -64,19 +80,15 @@ export function useWallet() {
       }
 
       const provider = new ethers.BrowserProvider((window as any).ethereum);
-
       await provider.send("eth_requestAccounts", []);
 
       const signer = await provider.getSigner();
-      const address = await signer.getAddress();
+      const addr = await signer.getAddress();
 
       setProvider(provider);
-      setAddress(address);
-      setWalletType("metamask");
+      setAddress(addr);
 
-      localStorage.setItem("wallet_type", "metamask");
-
-      console.log("✅ MetaMask connected:", address);
+      console.log("✅ MetaMask connected:", addr);
     } catch (err) {
       console.error("MetaMask error:", err);
     } finally {
@@ -85,122 +97,23 @@ export function useWallet() {
   };
 
   /* =========================================
-     CONNECT WEB3AUTH (GOOGLE, ETC)
-  ========================================= */
-  const connectWeb3Auth = async () => {
-    setLoading(true);
-
-    try {
-      if (!web3auth) throw new Error("Web3Auth not initialized");
-
-      const web3authProvider = await web3auth.connect();
-
-      // 👉 ADD THIS EXACT LINE
-      (window as any).web3authProvider = web3authProvider;
-
-      const user = await web3auth.getUserInfo();
-      console.log("Web3Auth User:", user);
-
-      if (!web3authProvider) {
-        throw new Error("No provider returned");
-      }
-
-      const provider = new ethers.BrowserProvider(web3authProvider as any);
-      const signer = await provider.getSigner();
-      const address = await signer.getAddress();
-
-      setProvider(provider);
-      setAddress(address);
-      setWalletType("web3auth");
-
-      localStorage.setItem("wallet_type", "web3auth");
-
-      console.log("✅ Web3Auth connected:", address);
-    } catch (err) {
-      console.error("Web3Auth error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* =========================================
-     AUTO RECONNECT (METAMASK ONLY)
-  ========================================= */
-  useEffect(() => {
-    const reconnect = async () => {
-      try {
-        const type = localStorage.getItem("wallet_type");
-
-        if (type !== "metamask") return;
-        if (!(window as any).ethereum) return;
-
-        const provider = new ethers.BrowserProvider((window as any).ethereum);
-        const accounts = await provider.listAccounts();
-
-        if (!accounts.length) return;
-
-        const signer = await provider.getSigner();
-        const address = await signer.getAddress();
-
-        setProvider(provider);
-        setAddress(address);
-        setWalletType("metamask");
-
-        console.log("🔁 MetaMask restored:", address);
-      } catch (err) {
-        console.error("Reconnect error:", err);
-      }
-    };
-
-    reconnect();
-  }, []);
-
-  /* =========================================
-     ACCOUNT CHANGE LISTENER
-  ========================================= */
-  useEffect(() => {
-    const eth = (window as any).ethereum;
-    if (!eth) return;
-
-    const handleAccountsChanged = (accounts: string[]) => {
-      if (!accounts.length) {
-        disconnect();
-        return;
-      }
-
-      setAddress(accounts[0]);
-      console.log("🔄 Account switched:", accounts[0]);
-    };
-
-    eth.on("accountsChanged", handleAccountsChanged);
-
-    return () => {
-      eth.removeListener("accountsChanged", handleAccountsChanged);
-    };
-  }, []);
-
-  /* =========================================
      DISCONNECT
   ========================================= */
-  const disconnect = () => {
+  const disconnect = async () => {
     setAddress(undefined);
     setProvider(null);
-    setWalletType(null);
-    localStorage.removeItem("wallet_type");
+
+    await logout();
 
     console.log("❌ Wallet disconnected");
   };
 
-  /* =========================================
-     RETURN
-  ========================================= */
   return {
     address,
     provider,
-    walletType,
     loading,
+    connectPrivy,
     connectMetaMask,
-    connectWeb3Auth,
     disconnect,
   };
 }

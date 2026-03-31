@@ -1,24 +1,39 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
-import process from "process";
-import { Buffer } from "buffer";
-
 import App from "./App";
+import { PrivyProvider } from "@privy-io/react-auth";
+import { BrowserRouter } from "react-router-dom";
 
-/* ✅ SAFE GLOBAL POLYFILLS */
-if (!(globalThis as any).Buffer) {
-  (globalThis as any).Buffer = Buffer;
-}
-
-if (!(globalThis as any).process) {
-  (globalThis as any).process = process;
-}
+const sepoliaChain = {
+  id: 11155111,
+  name: "Sepolia",
+  nativeCurrency: {
+    name: "Sepolia ETH",
+    symbol: "ETH",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.sepolia.org"],
+    },
+  },
+};
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <PrivyProvider
+      appId="cmndt4zu500dk0cl55gexmma7"
+      config={{
+        embeddedWallets: {
+          createOnLogin: "all-users",
+        },
+        defaultChain: sepoliaChain,
+        supportedChains: [sepoliaChain],
+      }}
+    >
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </PrivyProvider>
   </React.StrictMode>
 );

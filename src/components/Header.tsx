@@ -4,13 +4,13 @@ import logo from "../assets/logo.png";
 type Props = {
   address?: string;
   onConnectMetaMask: () => void;
-  onConnectWeb3Auth: () => void;
+  onConnectPrivy: () => void;
 };
 
 export default function Header({
   address,
   onConnectMetaMask,
-  onConnectWeb3Auth,
+  onConnectPrivy,
 }: Props) {
   const short = (addr?: string) =>
     addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "";
@@ -18,9 +18,6 @@ export default function Header({
   const [theme, setTheme] = useState<"retro" | "dark">("retro");
   const [showWalletModal, setShowWalletModal] = useState(false);
 
-  /* =========================================
-     THEME INIT
-  ========================================= */
   useEffect(() => {
     const saved = (localStorage.getItem("theme") as "retro" | "dark") || "retro";
     setTheme(saved);
@@ -34,26 +31,20 @@ export default function Header({
     document.documentElement.setAttribute("data-theme", next);
   };
 
-  /* =========================================
-     UI
-  ========================================= */
   return (
     <>
       <div className="header">
-        {/* LEFT: BRAND */}
         <div className="header-left">
           <img src={logo} alt="logo" className="logo" />
           <span className="brand">PreDEX Labs</span>
         </div>
 
-        {/* CENTER: THEME */}
         <div className="header-center">
           <button className="btn" onClick={toggleTheme}>
             {theme === "retro" ? "🌙 Dark" : "🖥 Retro"}
           </button>
         </div>
 
-        {/* RIGHT: WALLET */}
         <div className="header-right">
           <button
             className="btn-connect"
@@ -67,9 +58,6 @@ export default function Header({
         </div>
       </div>
 
-      {/* =========================================
-         WALLET SELECTOR (RETRO MODAL)
-      ========================================= */}
       {showWalletModal && (
         <div className="modal-backdrop">
           <div className="modal-window">
@@ -89,7 +77,7 @@ export default function Header({
               <button
                 className="btn"
                 onClick={() => {
-                  onConnectWeb3Auth();
+                  onConnectPrivy();
                   setShowWalletModal(false);
                 }}
               >

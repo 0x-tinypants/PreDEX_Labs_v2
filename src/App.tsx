@@ -50,7 +50,7 @@ export default function App() {
   const {
     address,
     connectMetaMask,
-    connectWeb3Auth,
+    connectPrivy,
   } = wallet;
 
   /* =========================================
@@ -69,7 +69,7 @@ export default function App() {
           <Header
             address={address}
             onConnectMetaMask={connectMetaMask}
-            onConnectWeb3Auth={connectWeb3Auth}
+            onConnectPrivy={connectPrivy}
           />)}
 
         <Routes>
