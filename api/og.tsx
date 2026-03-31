@@ -5,64 +5,25 @@ export const runtime = "edge";
 
 export default async function handler(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const escrow = searchParams.get("escrow");
+    const url = new URL(req.url, "https://www.predexlabs.com");
+    const escrow = url.searchParams.get("escrow") || "UNKNOWN";
 
-    if (!escrow) {
-      return new ImageResponse(
-        <div style={base}>Missing Wager</div>,
-        { width: 1200, height: 630 }
-      );
-    }
-
-    /* =========================================
-       🔥 FETCH WAGER DATA
-    ========================================= */
-    const response = await fetch(
-      "https://predex-22ce1-default-rtdb.firebaseio.com/wagers.json"
-    );
-
-    const raw = await response.json();
-    const data = typeof raw === "string" ? JSON.parse(raw) : raw;
-
-    const wager = data?.[escrow];
-
-    if (!wager) {
-      return new ImageResponse(
-        <div style={base}>Wager Not Found</div>,
-        { width: 1200, height: 630 }
-      );
-    }
-
-    /* =========================================
-       🧠 SAFE PARSING
-    ========================================= */
-    const challenger = wager?.challenger || "Player A";
-    const opponent = wager?.opponent || "Player B";
-    const amount = wager?.amount || "—";
-    const status = wager?.status || "Open";
-
-    /* =========================================
-       🎨 IMAGE UI
-    ========================================= */
     return new ImageResponse(
       <div style={base}>
         <div style={card}>
-
           <div style={title}>PreDEX</div>
 
           <div style={match}>
-            {challenger} vs {opponent}
+            Wager Invite
           </div>
 
-          <div style={amountStyle}>
-            ${amount}
+          <div style={amount}>
+            {escrow.slice(0, 6)}...{escrow.slice(-4)}
           </div>
 
-          <div style={statusStyle}>
-            {status}
+          <div style={status}>
+            Tap to View
           </div>
-
         </div>
       </div>,
       {
@@ -72,17 +33,11 @@ export default async function handler(req: Request) {
     );
   } catch (err) {
     console.error("OG ERROR:", err);
-
-    return new ImageResponse(
-      <div style={base}>Error Generating Preview</div>,
-      { width: 1200, height: 630 }
-    );
+    return new Response("OG failed", { status: 500 });
   }
 }
 
-/* =========================================
-   🎨 STYLES (STRICTLY TYPED)
-========================================= */
+/* ========================= */
 
 const base: CSSProperties = {
   width: "1200px",
@@ -91,19 +46,17 @@ const base: CSSProperties = {
   justifyContent: "center",
   alignItems: "center",
   background: "#0a0a0a",
-  fontFamily: "Arial",
 };
 
 const card: CSSProperties = {
   width: "900px",
   padding: "40px",
   borderRadius: "20px",
-  background: "rgba(255,255,255,0.05)",
   border: "2px solid #d9ff00",
   display: "flex",
   flexDirection: "column",
   gap: "20px",
-  textAlign: "center",
+  alignItems: "center",
 };
 
 const title: CSSProperties = {
@@ -117,13 +70,12 @@ const match: CSSProperties = {
   fontSize: "36px",
 };
 
-const amountStyle: CSSProperties = {
+const amount: CSSProperties = {
   color: "#58dd53",
-  fontSize: "52px",
-  fontWeight: 700,
+  fontSize: "42px",
 };
 
-const statusStyle: CSSProperties = {
+const status: CSSProperties = {
   color: "#999",
-  fontSize: "24px",
+  fontSize: "22px",
 };
