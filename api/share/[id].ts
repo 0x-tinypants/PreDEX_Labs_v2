@@ -1,49 +1,37 @@
-export const runtime = "edge";
+export default function handler(req: any, res: any) {
+  const { id } = req.query;
 
-export default async function handler(req: Request) {
-  try {
-    const url = new URL(req.url, "https://www.predexlabs.com");
-
-    const pathParts = url.pathname.split("/");
-    const id = pathParts[pathParts.length - 1];
-
-    if (!id) {
-      return new Response("Missing wager id", { status: 400 });
-    }
-
-    const domain = "https://www.predexlabs.com";
-
-    const ogImage = `${domain}/api/og?escrow=${id}`;
-    const redirectUrl = `${domain}/wager/${id}`;
-
-    return new Response(
-      `
-      <html>
-        <head>
-          <meta property="og:title" content="PreDEX Wager" />
-          <meta property="og:description" content="You've been invited to a wager" />
-          <meta property="og:image" content="${ogImage}" />
-          <meta property="og:type" content="website" />
-          <meta property="og:url" content="${redirectUrl}" />
-          <meta name="twitter:card" content="summary_large_image" />
-
-          <!-- 🔥 HARD REDIRECT -->
-          <meta http-equiv="refresh" content="0; url=${redirectUrl}" />
-        </head>
-
-        <body style="background:black;color:white;display:flex;align-items:center;justify-content:center;height:100vh;">
-          Redirecting to wager...
-        </body>
-      </html>
-      `,
-      {
-        headers: {
-          "Content-Type": "text/html",
-        },
-      }
-    );
-  } catch (err) {
-    console.error("SHARE ROUTE ERROR:", err);
-    return new Response("Share route crashed", { status: 500 });
+  if (!id || typeof id !== 'string') {
+    return res.status(400).send('Missing id');
   }
+
+  const ogImage = `https://www.predexlabs.com/og-wager.png`;
+
+  res.setHeader('Content-Type', 'text/html');
+
+  res.status(200).send(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+
+        <meta property="og:title" content="You've been challenged ⚡" />
+        <meta property="og:description" content="Tap to accept the wager on PreDEX" />
+        <meta property="og:image" content="${ogImage}" />
+        <meta property="og:type" content="website" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="You've been challenged ⚡" />
+        <meta name="twitter:description" content="Tap to accept the wager on PreDEX" />
+        <meta name="twitter:image" content="${ogImage}" />
+
+        <script>
+          window.location.href = "/?wager=${id}";
+        </script>
+      </head>
+      <body style="background:black;color:white;">
+        Redirecting...
+      </body>
+    </html>
+  `);
 }
