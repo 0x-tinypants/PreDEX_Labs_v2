@@ -173,7 +173,14 @@ export function useWagers() {
         /* =========================================
            3. HYDRATE
         ========================================= */
-        const raw = await hydrateEscrows([match], provider);
+        // 🔥 USE FULL PIPELINE INSTEAD OF SINGLE HYDRATE
+        const rawAll = await hydrateEscrows(addresses, provider);
+
+        // find the one we need AFTER hydration
+        const raw = rawAll.filter(
+          (r: any) =>
+            r.escrowAddress.toLowerCase() === match.toLowerCase()
+        );
 
         console.log("RAW RESULT:", raw);
 
