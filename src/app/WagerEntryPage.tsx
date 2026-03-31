@@ -7,7 +7,7 @@ import { useWallet } from "../state/useWallet";
 export default function WagerEntryPage() {
   const { id } = useParams<{ id?: string }>();
 
-  const { getTileByAddress, onIntent } = useWagers();
+  const { tiles, onIntent } = useWagers();
   const { address, connectPrivy } = useWallet();
 
   const [tile, setTile] = useState<any>(null);
@@ -20,20 +20,23 @@ export default function WagerEntryPage() {
   }, [id]);
 
   /* =========================================
-     LOAD WAGER
+     LOAD FROM GLOBAL STATE (NO FETCH)
   ========================================= */
   useEffect(() => {
     if (!escrowAddress) return;
 
-    async function load() {
-      setLoading(true);
-      const t = await getTileByAddress(escrowAddress);
-      setTile(t);
-      setLoading(false);
-    }
+    const found = tiles.find(
+      (t: any) =>
+        t.escrowAddress.toLowerCase() === escrowAddress.toLowerCase()
+    );
 
-    load();
-  }, [escrowAddress, getTileByAddress]);
+    if (found) {
+      setTile(found);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+  }, [tiles, escrowAddress]);
 
   /* =========================================
      ACCEPT HANDLER
@@ -49,7 +52,6 @@ export default function WagerEntryPage() {
         escrowAddress: tile.escrowAddress,
       });
 
-      // redirect to app after accept
       window.location.href = "/";
     } catch (err) {
       console.error(err);
@@ -81,12 +83,15 @@ export default function WagerEntryPage() {
   return (
     <div className="entry-page">
       <div className="entry-card">
-
         <h2>You’ve been challenged ⚡</h2>
 
         <div className="entry-info">
-          <p><strong>Wager:</strong> {tile.statement || "No description"}</p>
-          <p><strong>Stake:</strong> {tile.stakeEth || "—"} ETH</p>
+          <p>
+            <strong>Wager:</strong> {tile.statement || "No description"}
+          </p>
+          <p>
+            <strong>Stake:</strong> {tile.stakeEth || "—"} ETH
+          </p>
         </div>
 
         {!address && (
@@ -104,7 +109,6 @@ export default function WagerEntryPage() {
             {accepting ? "Accepting..." : "Accept Wager"}
           </button>
         )}
-
       </div>
     </div>
   );
