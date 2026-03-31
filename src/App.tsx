@@ -10,6 +10,7 @@ import CreateWager from "./components/CreateWager";
 import Tile from "./components/Tile";
 import BottomNav from "./components/BottomNav";
 import WagerPage from "./app/WagerPage";
+import WagerEntryPage from "./app/WagerEntryPage";
 
 import "./ui/tokens.css";
 import "./ui/themes/retro.css";
@@ -105,7 +106,7 @@ export default function App() {
 
         <Routes>
           <Route path="/" element={Home} />
-          <Route path="/wager/:id" element={<WagerPage />} />
+<Route path="/wager/:id" element={<WagerEntryPage />} />
 
           {/* 🔥 SPA SAFETY NET (prevents Vercel 404 issues) */}
           <Route path="*" element={<WagerPage />} />
