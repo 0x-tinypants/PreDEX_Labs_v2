@@ -156,10 +156,13 @@ export function useWagers() {
         /* =========================================
            2. MATCH ADDRESS
         ========================================= */
-        const cleanInput = ethers.getAddress(address);
+        const cleanInput = address
+          .replace(/[^a-fA-F0-9x]/g, "")
+          .trim()
+          .toLowerCase();
 
         const match = addresses.find(
-          (a) => ethers.getAddress(a) === cleanInput
+          (a) => a.toLowerCase() === cleanInput
         );
 
         console.log("MATCH FOUND:", match);
