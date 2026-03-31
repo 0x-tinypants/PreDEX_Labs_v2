@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { PrivyProvider } from "@privy-io/react-auth";
-import { BrowserRouter } from "react-router-dom";
 
 const sepoliaChain = {
   id: 11155111,
@@ -31,9 +30,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         supportedChains: [sepoliaChain],
       }}
     >
-      <BrowserRouter basename="/">
-        <App />
-      </BrowserRouter>
+      <App />
     </PrivyProvider>
   </React.StrictMode>
 );

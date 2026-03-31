@@ -1,5 +1,6 @@
+// src/app/WagerPage.tsx
+
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
 
 import { useWagers } from "../state/useWagers";
 import { useWallet } from "../state/useWallet";
@@ -9,12 +10,7 @@ import type { UITile } from "../wagers/types";
 import WagerWindow from "./WagerWindow";
 import "./window.css";
 
-const PENDING_WAGER_PATH_KEY = "predex_pending_wager_path";
-
-export default function WagerPage() {
-  const { id } = useParams<{ id?: string }>();
-  const location = useLocation();
-
+export default function WagerPage({ wagerId }: { wagerId: string }) {
   const { tiles, loading, onIntent, getTileByAddress } = useWagers();
   const { address, connectPrivy } = useWallet();
 
@@ -22,15 +18,14 @@ export default function WagerPage() {
   const [fetching, setFetching] = useState(false);
 
   /* =========================================
-     NORMALIZED ADDRESS
+     NORMALIZE ADDRESS
   ========================================= */
   const escrowAddress = useMemo(() => {
-    if (!id) return "";
-    return id.trim().toLowerCase();
-  }, [id]);
+    return wagerId ? wagerId.trim().toLowerCase() : "";
+  }, [wagerId]);
 
   /* =========================================
-     LOCAL MATCH (STRICT NORMALIZATION)
+     LOCAL MATCH
   ========================================= */
   const localTile = useMemo(() => {
     if (!escrowAddress) return null;
@@ -38,16 +33,13 @@ export default function WagerPage() {
     return (
       tiles.find(
         (t) =>
-          t.escrowAddress &&
-          t.escrowAddress.toLowerCase().trim() === escrowAddress
+          t.escrowAddress?.toLowerCase().trim() === escrowAddress
       ) ?? null
     );
   }, [tiles, escrowAddress]);
 
-  const finalTile = localTile || fetchedTile;
-
   /* =========================================
-     FETCH IF NOT FOUND LOCALLY
+     FETCH FALLBACK
   ========================================= */
   useEffect(() => {
     if (!escrowAddress) return;
@@ -55,7 +47,7 @@ export default function WagerPage() {
 
     let active = true;
 
-    async function run() {
+    const run = async () => {
       setFetching(true);
 
       try {
@@ -67,7 +59,7 @@ export default function WagerPage() {
       } finally {
         if (active) setFetching(false);
       }
-    }
+    };
 
     run();
 
@@ -76,48 +68,41 @@ export default function WagerPage() {
     };
   }, [escrowAddress, localTile, getTileByAddress]);
 
-  /* =========================================
-     PRESERVE PATH (LOGIN FLOW)
-  ========================================= */
-  useEffect(() => {
-    if (!escrowAddress) return;
-
-    const fullPath = `${location.pathname}${location.search}${location.hash}`;
-    sessionStorage.setItem(PENDING_WAGER_PATH_KEY, fullPath);
-  }, [escrowAddress, location]);
-
-  useEffect(() => {
-    if (!address || !escrowAddress) return;
-
-    const saved = sessionStorage.getItem(PENDING_WAGER_PATH_KEY);
-    const current = `${location.pathname}${location.search}${location.hash}`;
-
-    if (saved === current) {
-      sessionStorage.removeItem(PENDING_WAGER_PATH_KEY);
-    }
-  }, [address, escrowAddress, location]);
+  const finalTile = localTile || fetchedTile;
 
   /* =========================================
-     CONNECT HANDLER
+     LINK / JOIN LOGIC
   ========================================= */
-  async function handleConnectPrivy() {
-    if (escrowAddress) {
-      const fullPath = `${location.pathname}${location.search}${location.hash}`;
-      sessionStorage.setItem(PENDING_WAGER_PATH_KEY, fullPath);
-    }
+  const ZERO =
+    "0x0000000000000000000000000000000000000000";
 
-    try {
-      await connectPrivy();
-    } catch (err) {
-      console.error("Privy connect failed:", err);
-    }
-  }
+  const realParticipants =
+    finalTile?.participants?.filter(
+      (p: string) => p && p.toLowerCase() !== ZERO
+    ) ?? [];
+
+  const isLinkWager =
+    finalTile && realParticipants.length < 2;
+  const isCreator =
+    finalTile &&
+    address &&
+    finalTile.creator?.toLowerCase() === address.toLowerCase();
+
+  const isJoinable = !!isLinkWager && !!address && !isCreator;
+
+  console.log("DEBUG WAGER PAGE");
+  console.log("address:", address);
+  console.log("creator:", finalTile?.creator);
+  console.log("participants:", finalTile?.participants);
+  console.log("isLinkWager:", isLinkWager);
+  console.log("isCreator:", isCreator);
+  console.log("isJoinable:", isJoinable);
 
   /* =========================================
      STATES
   ========================================= */
 
-  // Invalid link
+  // invalid link
   if (!escrowAddress) {
     return (
       <div className="page-center">
@@ -126,7 +111,7 @@ export default function WagerPage() {
     );
   }
 
-  // Loading (block early "not found")
+  // loading
   if ((loading || fetching) && !finalTile) {
     return (
       <div className="page-center">
@@ -135,8 +120,8 @@ export default function WagerPage() {
     );
   }
 
-  // Not found (ONLY after tiles are loaded)
-  if (!finalTile && !fetching && tiles.length > 0) {
+  // not found
+  if (!finalTile && !fetching) {
     return (
       <div className="page-center">
         <div className="empty-state">Wager not found</div>
@@ -144,7 +129,7 @@ export default function WagerPage() {
     );
   }
 
-  // Not connected
+  // login gate
   if (!address) {
     return (
       <div className="wager-page-shell">
@@ -155,13 +140,13 @@ export default function WagerPage() {
 
           <div className="window-body">
             <div className="window-context">
-              You’ve been invited to a wager
+              Join this wager
             </div>
 
             <div className="window-actions">
               <button
                 className="btn primary"
-                onClick={handleConnectPrivy}
+                onClick={connectPrivy}
               >
                 Continue with Google
               </button>
@@ -181,6 +166,7 @@ export default function WagerPage() {
         tile={finalTile}
         viewer={address}
         onIntent={onIntent}
+        isJoinable={isJoinable}
       />
     </div>
   );

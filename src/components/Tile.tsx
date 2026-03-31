@@ -59,8 +59,7 @@ export default function Tile({
 
   const [expanded, setExpanded] = useState(false);
 
-  const inviteLink = `${window.location.origin}/wager/${tile.escrowAddress}`;
-
+  const inviteLink = `${window.location.origin}/?wager=${tile.escrowAddress}`;
 
   /* =========================================
      PERMISSIONS

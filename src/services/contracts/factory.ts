@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import FactoryArtifact from "../../blockchain/abis/PreDEXFactory.json";
 
-const FACTORY_ADDRESS = "0x3f2dFD882503048Fe3b57DA9A9C966B05263C6Ff";
+const FACTORY_ADDRESS = "0x84c5E2fD349e95E0395A8aeEDe16555EcE149958"
 
 export async function getFactoryContract(
   provider: ethers.BrowserProvider

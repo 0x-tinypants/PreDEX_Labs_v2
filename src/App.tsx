@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
 
 import { useWagers } from "./state/useWagers";
 import { useWallet } from "./state/useWallet";
@@ -10,7 +9,7 @@ import CreateWager from "./components/CreateWager";
 import Tile from "./components/Tile";
 import BottomNav from "./components/BottomNav";
 import WagerPage from "./app/WagerPage";
-import WagerEntryPage from "./app/WagerEntryPage";
+import LoginGate from "./components/LoginGate";
 
 import "./ui/tokens.css";
 import "./ui/themes/retro.css";
@@ -33,10 +32,20 @@ export default function App() {
   }, []);
 
   /* =========================================
-     ROUTING CONTEXT
+     ROUTING (LINK FLOW)
   ========================================= */
-  const location = useLocation();
-  const isWagerPage = location.pathname.startsWith("/wager");
+  const [wagerId, setWagerId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("wager");
+
+    if (id) {
+      setWagerId(id);
+    }
+  }, []);
+
+  const isWagerFlow = !!wagerId;
 
   /* =========================================
      UI STATE
@@ -47,12 +56,33 @@ export default function App() {
      WALLET
   ========================================= */
   const wallet = useWallet();
-  const { address, connectMetaMask, connectPrivy } = wallet;
+  const {
+    address,
+    authenticated,
+    ready,
+    connectMetaMask,
+    connectPrivy,
+  } = wallet;
 
   /* =========================================
      DATA
   ========================================= */
   const { tiles, loading, onIntent } = useWagers();
+
+  /* =========================================
+     HARD BLOCK (WAIT FOR WALLET INIT)
+  ========================================= */
+  if (!ready) {
+    return (
+      <div className="app-root">
+        <div className="app-shell">
+          <div className="centered-auth">
+            <p>Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   /* =========================================
      HOME VIEW
@@ -96,23 +126,28 @@ export default function App() {
     <div className="app-root">
       <div className="app-shell">
 
-        {!isWagerPage && (
-          <Header
-            address={address}
-            onConnectMetaMask={connectMetaMask}
-            onConnectPrivy={connectPrivy}
-          />
+        {/* HEADER (LOGIN BUTTONS LIVE HERE) */}
+        <Header
+          address={address}
+          onConnectMetaMask={connectMetaMask}
+          onConnectPrivy={connectPrivy}
+        />
+
+        {/* 🔥 CORRECT WAGER FLOW */}
+        {isWagerFlow ? (
+          !(authenticated && address) ? (
+            <LoginGate
+              onGoogle={connectPrivy}
+              onMetaMask={connectMetaMask}
+            />
+          ) : (
+            <WagerPage wagerId={wagerId!} />
+          )
+        ) : (
+          Home
         )}
 
-        <Routes>
-          <Route path="/" element={Home} />
-<Route path="/wager/:id" element={<WagerEntryPage />} />
-
-          {/* 🔥 SPA SAFETY NET (prevents Vercel 404 issues) */}
-          <Route path="*" element={<WagerPage />} />
-        </Routes>
-
-        {!isWagerPage && <BottomNav />}
+        {!isWagerFlow && <BottomNav />}
       </div>
     </div>
   );

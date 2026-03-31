@@ -1,18 +1,16 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { useNavigate } from "react-router-dom";
-
-const PENDING_WAGER_PATH_KEY = "predex_pending_wager_path";
 
 export function useWallet() {
-  const { login, logout, authenticated } = usePrivy();
+  const { login, logout, authenticated, ready: privyReady } = usePrivy();
   const { wallets } = useWallets();
-  const navigate = useNavigate();
 
   const [address, setAddress] = useState<string | undefined>();
   const [provider, setProvider] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+
+  const [ready, setReady] = useState(false); // 🔥 CRITICAL
 
   /* =========================================
      CONNECT (GOOGLE)
@@ -34,39 +32,46 @@ export function useWallet() {
   };
 
   /* =========================================
-     SYNC WALLET (AFTER LOGIN ONLY)
+     SYNC WALLET (AFTER LOGIN)
   ========================================= */
   useEffect(() => {
     const setup = async () => {
-      if (!authenticated || wallets.length === 0) return;
+      // 🔥 WAIT FOR PRIVY TO INITIALIZE
+      if (!privyReady) return;
 
-      const wallet = wallets[0];
-      const provider = await wallet.getEthersProvider();
-      const signer = provider.getSigner();
-      const addr = await signer.getAddress();
-
-      setProvider(provider);
-      setAddress(addr);
-
-      console.log("✅ wallet ready:", addr);
-
-      /* =========================================
-         🔥 REDIRECT BACK TO WAGER IF NEEDED
-      ========================================= */
-      const pendingPath = sessionStorage.getItem(PENDING_WAGER_PATH_KEY);
-
-      if (pendingPath) {
-        console.log("🔁 restoring pending wager path:", pendingPath);
-
-        sessionStorage.removeItem(PENDING_WAGER_PATH_KEY);
-
-        // IMPORTANT: replace so history is clean
-        navigate(pendingPath, { replace: true });
+      // 🔥 NOT LOGGED IN → CLEAR EVERYTHING
+      if (!authenticated) {
+        setAddress(undefined);
+        setProvider(null);
+        setReady(true);
+        return;
       }
+
+      // 🔥 LOGGED IN BUT NO WALLET YET
+      if (wallets.length === 0) {
+        setReady(true);
+        return;
+      }
+
+      try {
+        const wallet = wallets[0];
+        const provider = await wallet.getEthersProvider();
+        const signer = provider.getSigner();
+        const addr = await signer.getAddress();
+
+        setProvider(provider);
+        setAddress(addr);
+
+        console.log("✅ wallet ready:", addr);
+      } catch (err) {
+        console.error("Wallet setup error:", err);
+      }
+
+      setReady(true); // 🔥 ALWAYS SET READY LAST
     };
 
     setup();
-  }, [authenticated, wallets, navigate]);
+  }, [authenticated, wallets, privyReady]);
 
   /* =========================================
      METAMASK (OPTIONAL)
@@ -93,6 +98,7 @@ export function useWallet() {
       console.error("MetaMask error:", err);
     } finally {
       setLoading(false);
+      setReady(true); // 🔥 ensure ready after manual connect
     }
   };
 
@@ -112,6 +118,8 @@ export function useWallet() {
     address,
     provider,
     loading,
+    authenticated,
+    ready, // 🔥 NEW
     connectPrivy,
     connectMetaMask,
     disconnect,

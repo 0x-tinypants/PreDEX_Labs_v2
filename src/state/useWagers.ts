@@ -4,17 +4,20 @@ import { ethers } from "ethers";
 import type { UITile } from "../wagers/types";
 
 import factoryJson from "../blockchain/abis/PreDEXFactory.json";
+import escrowJson from "../blockchain/abis/PreDEXEscrow.json";
+
 import { hydrateEscrows } from "./hydrateEscrows";
 import { mapRawEscrowsToTiles } from "../wagers/normalize";
 import { getWagerMetadata } from "../services/firebase/wagers";
-import escrowJson from "../blockchain/abis/PreDEXEscrow.json";
+
+import { useWallet } from "./useWallet";
 
 /* =========================================================
    CONFIG
 ========================================================= */
 
 const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
-const FACTORY_ADDRESS = "0x3f2dFD882503048Fe3b57DA9A9C966B05263C6Ff";
+const FACTORY_ADDRESS = "0x84c5E2fD349e95E0395A8aeEDe16555EcE149958";
 
 const factoryAbi = (factoryJson as any).abi;
 
@@ -27,9 +30,8 @@ export function useWagers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /* -----------------------------------------
-     STABLE PROVIDER (DO NOT RECREATE)
-  ----------------------------------------- */
+  const { provider: walletProvider } = useWallet();
+
   const providerRef = useRef<ethers.JsonRpcProvider | null>(null);
 
   if (!providerRef.current) {
@@ -38,9 +40,10 @@ export function useWagers() {
 
   const provider = providerRef.current;
 
-  /* -----------------------------------------
-     LOAD FUNCTION (CORE PIPELINE)
-  ----------------------------------------- */
+  /* =========================================================
+     LOAD
+  ========================================================= */
+
   const load = useCallback(async () => {
     console.group("[useWagers] LOAD");
 
@@ -48,16 +51,8 @@ export function useWagers() {
       setLoading(true);
       setError(null);
 
-      /* =========================================
-         1. CONNECTIVITY CHECK
-      ========================================= */
-
       const block = await provider.getBlockNumber();
       console.log("Connected → block", block);
-
-      /* =========================================
-         2. FACTORY CONTRACT
-      ========================================= */
 
       const factory = new ethers.Contract(
         FACTORY_ADDRESS,
@@ -65,33 +60,17 @@ export function useWagers() {
         provider
       );
 
-      /* =========================================
-         3. FETCH ESCROW ADDRESSES
-      ========================================= */
-
       const addresses: string[] = await factory.getEscrows();
-
-      console.log("Escrows found:", addresses.length);
 
       if (!addresses.length) {
         setTiles([]);
         return;
       }
 
-      /* =========================================
-         4. HYDRATE (CHAIN → RAW)
-      ========================================= */
-
       const raw = await hydrateEscrows(addresses, provider);
 
-      console.log("Hydrated:", raw.length);
-
-      /* =========================================
-         5. NORMALIZE (RAW → UI)
-      ========================================= */
-
       const mapped = await Promise.all(
-        mapRawEscrowsToTiles(raw, tiles).map(async (tile) => {
+        mapRawEscrowsToTiles(raw, []).map(async (tile) => {
           const meta = await getWagerMetadata(tile.escrowAddress);
 
           return {
@@ -101,13 +80,13 @@ export function useWagers() {
           };
         })
       );
-      console.log("Tiles mapped:", mapped.length);
 
-      const sorted = mapped.sort((a: any, b: any) => {
-        return (b.createdAt || 0) - (a.createdAt || 0);
-      });
+      const sorted = mapped.sort(
+        (a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0)
+      );
 
       setTiles(sorted);
+
     } catch (err: any) {
       console.error("[useWagers] ERROR", err);
       setError(err?.message ?? "Failed to load wagers");
@@ -116,15 +95,16 @@ export function useWagers() {
       console.groupEnd();
     }
   }, [provider]);
-  /* -----------------------------------------
+
+  /* =========================================================
      INITIAL LOAD
-  ----------------------------------------- */
+  ========================================================= */
+
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      if (cancelled) return;
-      await load();
+      if (!cancelled) await load();
     })();
 
     return () => {
@@ -132,41 +112,38 @@ export function useWagers() {
     };
   }, [load]);
 
+  /* =========================================================
+     GET SINGLE TILE
+  ========================================================= */
 
   const getTileByAddress = useCallback(
     async (address: string): Promise<UITile | null> => {
       try {
+        const clean = address.toLowerCase().trim();
+
+
+        if (clean.startsWith("temp_")) {
+          console.error("❌ Temp wagers are deprecated");
+          return null;
+        }
         /* =========================================
-           1. FACTORY (SOURCE OF TRUTH)
+           ON-CHAIN FLOW
         ========================================= */
+
         const factory = new ethers.Contract(
           FACTORY_ADDRESS,
           factoryAbi,
           provider
         );
 
-        const rawAddresses = await factory.getEscrows();
-        const addresses: string[] = Array.from(rawAddresses);
-
-        if (!addresses.length) return null;
-
-        /* =========================================
-           2. CLEAN + MATCH ADDRESS
-        ========================================= */
-        const cleanInput = address
-          .replace(/[^a-fA-F0-9x]/g, "")
-          .trim()
-          .toLowerCase();
+        const addresses: string[] = await factory.getEscrows();
 
         const match = addresses.find(
-          (a) => a.toLowerCase() === cleanInput
+          (a) => a.toLowerCase() === clean
         );
 
         if (!match) return null;
 
-        /* =========================================
-           3. HYDRATE (USE FULL PIPELINE)
-        ========================================= */
         const rawAll = await hydrateEscrows(addresses, provider);
 
         const raw = rawAll.filter(
@@ -176,18 +153,8 @@ export function useWagers() {
 
         if (!raw.length) return null;
 
-        /* =========================================
-           4. NORMALIZE
-        ========================================= */
-        const mapped = mapRawEscrowsToTiles(raw, []);
+        let tile = mapRawEscrowsToTiles(raw, [])[0];
 
-        if (!mapped.length) return null;
-
-        let tile = mapped[0];
-
-        /* =========================================
-           5. METADATA ENRICHMENT
-        ========================================= */
         const meta = await getWagerMetadata(tile.escrowAddress);
 
         tile = {
@@ -197,9 +164,6 @@ export function useWagers() {
           createdAt: meta?.createdAt || 0,
         };
 
-        /* =========================================
-           6. INJECT INTO STATE (OPTIONAL BUT IDEAL)
-        ========================================= */
         setTiles((prev) => {
           const exists = prev.some(
             (t) =>
@@ -221,28 +185,95 @@ export function useWagers() {
     },
     [provider]
   );
-  /* -----------------------------------------
-     PUBLIC API
-  ----------------------------------------- */
-  const handleIntent = useCallback(async (intent: any) => {
-    console.group("[handleIntent]");
-    console.log(intent);
+
+  /* =========================================================
+     JOIN WAGER
+  ========================================================= */
+
+  /* =========================================================
+   JOIN WAGER
+========================================================= */
+
+  const joinWager = async (escrowAddress: string) => {
+    console.group("[JOIN_WAGER]");
+    console.log("👉 Incoming escrow:", escrowAddress);
 
     try {
-      if (!(window as any).ethereum) {
-        throw new Error("No wallet found");
+      // 🔒 prevent double execution
+      if ((window as any).__JOINING) {
+        console.log("⛔ Already joining — skipping duplicate call");
+        return;
+      }
+      (window as any).__JOINING = true;
+
+      if (!walletProvider) {
+        throw new Error("Wallet not connected");
       }
 
-      const provider = new ethers.BrowserProvider(
-        (window as any).ethereum
+      const signer = await walletProvider.getSigner();
+      const user = await signer.getAddress();
+
+      console.log("👤 Active wallet:", user);
+
+
+      // ❌ TEMP FLOW REMOVED — ALL WAGERS MUST BE REAL ESCROWS NOW
+      if (escrowAddress.startsWith("temp_")) {
+        throw new Error("Invalid wager: temp IDs are no longer supported");
+      }
+      /* =========================================
+         NORMAL FLOW (EXISTING ESCROW)
+      ========================================= */
+
+      console.log("🔁 Joining existing escrow");
+
+      const contract = new ethers.Contract(
+        escrowAddress,
+        escrowJson.abi,
+        signer
       );
 
-      const signer = await provider.getSigner();
+      const stake = await contract.stakeAmount();
+      console.log("💵 Stake amount:", stake.toString());
 
-      /* =========================================
-         RESOLVE PROPOSE
-      ========================================= */
+      const tx = await contract.deposit({ value: stake });
+      console.log("📤 TX:", tx.hash);
+
+      await tx.wait();
+      console.log("✅ Joined successfully");
+
+      return { success: true };
+
+    } catch (err: any) {
+      console.error("❌ JOIN FAILED:", err);
+      return { success: false, error: err?.message };
+    } finally {
+      (window as any).__JOINING = false;
+      console.groupEnd();
+    }
+  };
+
+  /* =========================================================
+     INTENTS
+  ========================================================= */
+
+  const handleIntent = useCallback(async (intent: any) => {
+    try {
+      if (intent.type === "JOIN_WAGER") {
+        const res = await joinWager(intent.escrowAddress);
+
+        if (res?.success) {
+          // 🔥 slight delay so wallet UI finishes cleanly
+          setTimeout(() => {
+            window.location.href = `/?highlight=${intent.escrowAddress}`;
+          }, 800);
+        }
+      }
+
       if (intent.type === "RESOLVE_PROPOSE") {
+        if (!walletProvider) throw new Error("Wallet not connected");
+
+        const signer = await walletProvider.getSigner();
+
         const contract = new ethers.Contract(
           intent.escrowAddress,
           escrowJson.abi,
@@ -250,33 +281,14 @@ export function useWagers() {
         );
 
         const tx = await contract.proposeWinner(intent.winner);
-
-        console.log("TX SENT:", tx.hash);
-
         await tx.wait();
-
-        console.log("CONFIRMED");
-
-        /* =========================================
-           🔥 OPTIMISTIC UI UPDATE (CRITICAL)
-        ========================================= */
-
-        setTiles((prev) =>
-          prev.map((t) => {
-            if (t.escrowAddress !== intent.escrowAddress) return t;
-
-            return {
-              ...t,
-              status: "proposed",
-              proposedWinner: intent.winner,
-              proposalTimestamp: Date.now(), // ✅ THIS IS THE KEY
-            };
-          })
-        );
       }
 
-
       if (intent.type === "RESOLVE_CLAIM") {
+        if (!walletProvider) throw new Error("Wallet not connected");
+
+        const signer = await walletProvider.getSigner();
+
         const contract = new ethers.Contract(
           intent.escrowAddress,
           escrowJson.abi,
@@ -284,32 +296,15 @@ export function useWagers() {
         );
 
         const tx = await contract.finalize();
-
-        console.log("CLAIM TX:", tx.hash);
-
         await tx.wait();
       }
 
-      /* =========================================
-         ACCEPT (JOIN)
-      ========================================= */
-      if (intent.type === "ACCEPT") {
-        await joinWager(intent.escrowAddress);
-      }
+      setTimeout(load, 500);
 
-      /* =========================================
-         REFRESH STATE (CRITICAL)
-      ========================================= */
-      setTimeout(() => {
-        load();
-      }, 500);
-
-    } catch (err: any) {
+    } catch (err) {
       console.error("[handleIntent] ERROR", err);
-    } finally {
-      console.groupEnd();
     }
-  }, [load]);
+  }, [walletProvider, load]);
 
   return {
     tiles,
@@ -317,82 +312,6 @@ export function useWagers() {
     error,
     refresh: load,
     onIntent: handleIntent,
-    getTileByAddress,   // 🔥 ADD THIS
+    getTileByAddress,
   };
-}
-
-export async function joinWager(escrowAddress: string) {
-  console.group("[joinWager]");
-  console.log("Escrow:", escrowAddress);
-
-  try {
-    /* =========================================
-       1. WALLET CHECK
-    ========================================= */
-    if (!(window as any).ethereum) {
-      throw new Error("No wallet found");
-    }
-
-    const provider = new ethers.BrowserProvider(
-      (window as any).ethereum
-    );
-
-    const signer = await provider.getSigner();
-    const user = await signer.getAddress();
-
-    console.log("User:", user);
-
-    /* =========================================
-       2. CONTRACT INSTANCE
-    ========================================= */
-    const contract = new ethers.Contract(
-      escrowAddress,
-      escrowJson.abi,
-      signer
-    );
-
-    /* =========================================
-       3. FETCH STAKE (CRITICAL)
-    ========================================= */
-    const stake: bigint = await contract.stakeAmount();
-
-    console.log("Stake (wei):", stake.toString());
-    console.log("Stake (eth):", ethers.formatEther(stake));
-
-    if (stake <= 0n) {
-      throw new Error("Invalid stake amount");
-    }
-
-    /* =========================================
-       4. SEND TX (DEPOSIT)
-    ========================================= */
-    const tx = await contract.deposit({
-      value: stake,
-    });
-
-    console.log("TX SENT:", tx.hash);
-
-    /* =========================================
-       5. WAIT CONFIRMATION
-    ========================================= */
-    const receipt = await tx.wait();
-
-    console.log("CONFIRMED:", receipt.hash);
-
-    console.groupEnd();
-
-    return {
-      success: true,
-      txHash: receipt.hash,
-    };
-
-  } catch (err: any) {
-    console.error("JOIN FAILED:", err);
-    console.groupEnd();
-
-    return {
-      success: false,
-      error: err?.message || "Join failed",
-    };
-  }
 }

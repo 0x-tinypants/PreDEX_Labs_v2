@@ -164,3 +164,80 @@
   border-right: 1px solid var(--inset-right);
   border-bottom: 1px solid var(--inset-bottom);
 }
+
+/* ================================
+   LOGIN GATE
+================================ */
+
+.login-gate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+}
+
+.login-card {
+  background: var(--panel);
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  width: 280px;
+  border: 1px solid var(--border);
+}
+
+.login-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ================================
+   LOGIN GATE (UPGRADED)
+================================ */
+
+.login-card.retro {
+  background: var(--panel);
+  border: 2px solid var(--border);
+  box-shadow: 4px 4px 0px var(--border);
+}
+
+.login-title {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.login-sub {
+  font-size: 13px;
+  opacity: 0.8;
+  margin-bottom: 12px;
+}
+
+.info-block {
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+/* FAQ */
+
+.faq {
+  margin-top: 10px;
+  text-align: left;
+}
+
+.faq-item {
+  border-top: 1px solid var(--border);
+  padding: 10px 0;
+  cursor: pointer;
+}
+
+.faq-question {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.faq-answer {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.85;
+}

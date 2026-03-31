@@ -8,7 +8,7 @@ import { createWagerMetadata } from "../services/firebase/wagers";
 export default function CreateWager({ wallet }: any) {
   const { provider } = wallet;
 
-  const [type, setType] = useState<"P2P" | "OPEN">("P2P");
+  const [type, setType] = useState<"P2P" | "LINK">("P2P");
   const [statement, setStatement] = useState("");
   const [deadline, setDeadline] = useState("");
   const [opponent, setOpponent] = useState("");
@@ -17,8 +17,13 @@ export default function CreateWager({ wallet }: any) {
 
   const handleSubmit = async () => {
     try {
-      if (!statement || !deadline || !opponent || !amount) {
-        alert("Please fill all fields");
+      if (!statement || !deadline || !amount) {
+        alert("Please fill all required fields");
+        return;
+      }
+
+      if (type === "P2P" && !opponent) {
+        alert("Opponent required for P2P wager");
         return;
       }
 
@@ -31,34 +36,45 @@ export default function CreateWager({ wallet }: any) {
         new Date(deadline).getTime() / 1000
       );
 
+      const secondsFromNow =
+        deadlineTimestamp - Math.floor(Date.now() / 1000);
+
+      if (secondsFromNow <= 0) {
+        alert("Deadline must be in the future");
+        return;
+      }
+
       setLoading(true);
-      console.log("🚀 Creating wager...");
-
-      /* =========================================
-         CREATE ESCROW
-      ========================================= */
-      const { receipt } = await createEscrow(provider, {
-        opponent,
-        stakeEth: amount,
-        deadlineSecondsFromNow:
-          deadlineTimestamp - Math.floor(Date.now() / 1000),
-      });
-
-      console.log("✅ TX CONFIRMED:", receipt.hash);
 
       const signer = await provider.getSigner();
+      const creatorAddress = await signer.getAddress();
+
+      /* =========================================
+         🔥 UNIFIED ESCROW CREATION (P2P + LINK)
+      ========================================= */
+
+      const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+      const finalOpponent =
+        type === "LINK" ? ZERO_ADDRESS : opponent;
+
+      const { receipt } = await createEscrow(provider, {
+        opponent: finalOpponent,
+        stakeEth: amount,
+        deadlineSecondsFromNow: secondsFromNow,
+      });
 
       /* =========================================
          EXTRACT ESCROW ADDRESS
       ========================================= */
       let escrowAddress: string | null = null;
 
+      const iface = new ethers.Interface([
+        "event EscrowCreated(address indexed escrow, address indexed partyA, address indexed partyB, uint256 stakeAmount, uint256 fundingDeadline)",
+      ]);
+
       for (const log of receipt.logs) {
         try {
-          const iface = new ethers.Interface([
-            "event EscrowCreated(address indexed escrow, address indexed partyA, address indexed partyB, uint256 stakeAmount, uint256 fundingDeadline)"
-          ]);
-
           const parsed = iface.parseLog(log);
           if (!parsed) continue;
 
@@ -76,30 +92,45 @@ export default function CreateWager({ wallet }: any) {
           }
 
           if (escrowAddress) break;
-        } catch {}
+        } catch {
+          continue;
+        }
       }
 
       if (!escrowAddress) {
-        console.error("❌ Failed to extract escrow address");
-        alert("Wager created but metadata failed");
+        alert("Escrow created but address extraction failed");
         return;
       }
 
-      console.log("🎯 Escrow Address:", escrowAddress);
-
       /* =========================================
-         FIREBASE WRITE
+         FIREBASE WRITE (KEYED BY REAL ADDRESS)
       ========================================= */
+
       await createWagerMetadata(escrowAddress, {
         statement,
-        creator: await signer.getAddress(),
-        opponent,
+        creator: creatorAddress,
+        opponent: type === "LINK" ? undefined : opponent,
         amount,
+        type,
+        status: type === "LINK" ? "awaiting_opponent" : "pending",
+        createdAt: Date.now(),
       });
 
-      console.log("🔥 Firebase write complete");
+      /* =========================================
+         LINK GENERATION (ONLY FOR LINK)
+      ========================================= */
 
-      /* RESET */
+      if (type === "LINK") {
+const link = `${window.location.origin}/?wager=${escrowAddress}`;
+
+        console.log("🔗 SHARE LINK:", link);
+        prompt("Share this link:", link);
+      }
+
+      /* =========================================
+         RESET
+      ========================================= */
+
       setStatement("");
       setDeadline("");
       setOpponent("");
@@ -129,10 +160,10 @@ export default function CreateWager({ wallet }: any) {
             P2P
           </button>
           <button
-            className={`btn ${type === "OPEN" ? "btn-active" : ""}`}
-            onClick={() => setType("OPEN")}
+            className={`btn ${type === "LINK" ? "btn-active" : ""}`}
+            onClick={() => setType("LINK")}
           >
-            OPEN
+            LINK
           </button>
         </div>
       </div>
@@ -160,7 +191,12 @@ export default function CreateWager({ wallet }: any) {
         <input
           value={opponent}
           onChange={(e) => setOpponent(e.target.value)}
-          placeholder="0x..."
+          placeholder={
+            type === "LINK"
+              ? "Generated via link"
+              : "0x..."
+          }
+          disabled={type === "LINK"}
         />
       </div>
 

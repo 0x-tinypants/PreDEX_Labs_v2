@@ -33,14 +33,22 @@ export async function createWagerMetadata(
     creator: string;
     opponent?: string;
     amount?: string;
+    type?: "P2P" | "LINK";
+    status?: string;
+    createdAt?: number;
   }
 ) {
   const key = normalizeAddress(escrowAddress);
 
-  await set(ref(db, `wagers/${key}`), {
-    ...data,
-    createdAt: Date.now(),
-  });
+  // 🔥 remove undefined values (critical)
+  const cleanData = Object.fromEntries(
+    Object.entries({
+      ...data,
+      createdAt: Date.now(),
+    }).filter(([_, v]) => v !== undefined)
+  );
+
+  await set(ref(db, `wagers/${key}`), cleanData);
 }
 
 /* =========================================
