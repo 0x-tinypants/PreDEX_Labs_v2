@@ -23,20 +23,29 @@ export default function WagerEntryPage() {
      LOAD FROM GLOBAL STATE (NO FETCH)
   ========================================= */
   useEffect(() => {
-    if (!escrowAddress) return;
+  if (!escrowAddress) return;
 
-    const found = tiles.find(
-      (t: any) =>
-        t.escrowAddress.toLowerCase() === escrowAddress.toLowerCase()
-    );
+  // wait until tiles are actually loaded
+  if (!tiles || tiles.length === 0) {
+    setLoading(true);
+    return;
+  }
 
-    if (found) {
-      setTile(found);
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
-  }, [tiles, escrowAddress]);
+  const found = tiles.find((t: any) => {
+    const addr = (t.escrowAddress || t.address || "").toLowerCase();
+    return addr === escrowAddress.toLowerCase();
+  });
+
+  if (found) {
+    setTile(found);
+  } else {
+    setTile(null);
+  }
+
+  // loading is DONE once tiles are loaded
+  setLoading(false);
+
+}, [tiles, escrowAddress]);
 
   /* =========================================
      ACCEPT HANDLER
