@@ -1,7 +1,16 @@
 {
-  "rewrites": [
-    { "source": "/share/:id", "destination": "/share.html" },
-    { "source": "/wager/:id", "destination": "/" },
-    { "source": "/((?!assets|share\\.html|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)", "destination": "/" }
+  "routes": [
+    {
+      "src": "^/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "^/wager/(.*)",
+      "dest": "/"
+    },
+    {
+      "src": ".*",
+      "dest": "/index.html"
+    }
   ]
 }
