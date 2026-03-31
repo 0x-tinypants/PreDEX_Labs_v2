@@ -136,34 +136,65 @@ export function useWagers() {
   const getTileByAddress = useCallback(
     async (address: string): Promise<UITile | null> => {
       try {
-        console.log("[getTileByAddress] Fetching:", address);
+        console.log("[getTileByAddress] SAFE PATH:", address);
 
-        /* 1. HYDRATE SINGLE ESCROW */
-        const raw = await hydrateEscrows([address], provider);
+        /* =========================================
+           1. GET ALL ESCROWS (SOURCE OF TRUTH)
+        ========================================= */
+        const factory = new ethers.Contract(
+          FACTORY_ADDRESS,
+          factoryAbi,
+          provider
+        );
+
+        const addresses: string[] = await factory.getEscrows();
+
+        /* =========================================
+           2. FIND MATCH
+        ========================================= */
+        const match = addresses.find(
+          (a) => a.toLowerCase() === address.toLowerCase()
+        );
+
+        if (!match) {
+          console.warn("Escrow not found in factory");
+          return null;
+        }
+
+        /* =========================================
+           3. HYDRATE USING WORKING PATH
+        ========================================= */
+        const raw = await hydrateEscrows([match], provider);
 
         if (!raw.length) return null;
 
-        /* 2. NORMALIZE */
-        const mapped = mapRawEscrowsToTiles(raw, []);
-        let tile = mapped[0];
+        /* =========================================
+           4. FULL NORMALIZATION (MATCH MAIN PIPELINE)
+        ========================================= */
+        const mapped = await Promise.all(
+          mapRawEscrowsToTiles(raw, []).map(async (tile) => {
+            const meta = await getWagerMetadata(tile.escrowAddress);
 
+            return {
+              ...tile,
+              escrowAddress: tile.escrowAddress.toLowerCase(),
+              statement: meta?.statement || "",
+              createdAt: meta?.createdAt || 0,
+            };
+          })
+        );
+
+        const tile = mapped[0];
         if (!tile) return null;
 
-        /* 🔥 3. FETCH METADATA (CRITICAL FIX) */
-        const meta = await getWagerMetadata(tile.escrowAddress);
-
-        tile = {
-          ...tile,
-          statement: meta?.statement || "",
-          createdAt: meta?.createdAt || 0,
-        };
-
-        /* 🔥 4. INJECT INTO STATE */
+        /* =========================================
+           5. INJECT INTO STATE
+        ========================================= */
         setTiles((prev) => {
           const exists = prev.some(
             (t) =>
               t.escrowAddress.toLowerCase() ===
-              address.toLowerCase()
+              tile.escrowAddress.toLowerCase()
           );
 
           if (exists) return prev;
@@ -173,7 +204,7 @@ export function useWagers() {
 
         return tile;
       } catch (err) {
-        console.error("[getTileByAddress] ERROR", err);
+        console.error("[getTileByAddress] FAIL", err);
         return null;
       }
     },
