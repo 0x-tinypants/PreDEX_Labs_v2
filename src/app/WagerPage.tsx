@@ -12,7 +12,7 @@ import "./window.css";
 const PENDING_WAGER_PATH_KEY = "predex_pending_wager_path";
 
 export default function WagerPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id?: string }>();
   const location = useLocation();
 
   const { tiles, loading, onIntent, getTileByAddress } = useWagers();
@@ -21,10 +21,21 @@ export default function WagerPage() {
   const [fetchedTile, setFetchedTile] = useState<UITile | null>(null);
   const [fetching, setFetching] = useState(false);
 
+  /* =========================================
+     SAFE ID PARSING (handles catch-all + bad routes)
+  ========================================= */
   const escrowAddress = useMemo(() => {
-    return id?.toLowerCase() ?? "";
+    if (!id) return "";
+
+    // strip accidental prefixes (e.g. if path was wrong)
+    const clean = id.replace("/wager/", "").trim();
+
+    return clean.toLowerCase();
   }, [id]);
 
+  /* =========================================
+     LOCAL MATCH
+  ========================================= */
   const localTile = useMemo(() => {
     if (!escrowAddress) return null;
 
@@ -37,12 +48,16 @@ export default function WagerPage() {
 
   const finalTile = localTile || fetchedTile;
 
+  /* =========================================
+     RESET ON ID CHANGE
+  ========================================= */
   useEffect(() => {
-    if (!escrowAddress) return;
-
     setFetchedTile(null);
   }, [escrowAddress]);
 
+  /* =========================================
+     FETCH FALLBACK
+  ========================================= */
   useEffect(() => {
     if (!escrowAddress) return;
     if (localTile) return;
@@ -54,18 +69,12 @@ export default function WagerPage() {
 
       try {
         const res = await getTileByAddress(escrowAddress);
-        if (active) {
-          setFetchedTile(res ?? null);
-        }
+        if (active) setFetchedTile(res ?? null);
       } catch (err) {
         console.error("Fetch wager failed:", err);
-        if (active) {
-          setFetchedTile(null);
-        }
+        if (active) setFetchedTile(null);
       } finally {
-        if (active) {
-          setFetching(false);
-        }
+        if (active) setFetching(false);
       }
     }
 
@@ -76,12 +85,15 @@ export default function WagerPage() {
     };
   }, [escrowAddress, localTile, getTileByAddress]);
 
+  /* =========================================
+     PRESERVE ROUTE FOR LOGIN FLOW
+  ========================================= */
   useEffect(() => {
     if (!escrowAddress) return;
 
     const fullPath = `${location.pathname}${location.search}${location.hash}`;
     sessionStorage.setItem(PENDING_WAGER_PATH_KEY, fullPath);
-  }, [escrowAddress, location.pathname, location.search, location.hash]);
+  }, [escrowAddress, location]);
 
   useEffect(() => {
     if (!address) return;
@@ -93,8 +105,11 @@ export default function WagerPage() {
     if (savedPath === currentPath) {
       sessionStorage.removeItem(PENDING_WAGER_PATH_KEY);
     }
-  }, [address, escrowAddress, location.pathname, location.search, location.hash]);
+  }, [address, escrowAddress, location]);
 
+  /* =========================================
+     CONNECT HANDLER
+  ========================================= */
   async function handleConnectPrivy() {
     if (escrowAddress) {
       const fullPath = `${location.pathname}${location.search}${location.hash}`;
@@ -108,7 +123,10 @@ export default function WagerPage() {
     }
   }
 
-  if (!id) {
+  /* =========================================
+     STATES
+  ========================================= */
+  if (!escrowAddress) {
     return (
       <div className="page-center">
         <div className="empty-state">Invalid wager link</div>
@@ -159,6 +177,9 @@ export default function WagerPage() {
     );
   }
 
+  /* =========================================
+     SUCCESS
+  ========================================= */
   return (
     <div className="wager-page-shell">
       <WagerWindow

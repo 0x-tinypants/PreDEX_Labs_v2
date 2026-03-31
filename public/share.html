@@ -1,10 +1,9 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
 
-  <!-- 🔥 WAGER PREVIEW -->
+  <!-- OG -->
   <meta property="og:title" content="You’ve been challenged ⚡" />
   <meta property="og:description" content="Tap to accept the wager on PreDEX" />
   <meta property="og:image" content="https://www.predexlabs.com/og-wager.png" />
@@ -15,17 +14,23 @@
   <meta name="twitter:description" content="Tap to accept the wager on PreDEX" />
   <meta name="twitter:image" content="https://www.predexlabs.com/og-wager.png" />
 
-  <!-- 🔥 REDIRECT -->
+  <!-- 🔥 FIXED REDIRECT -->
   <script>
-    const parts = window.location.pathname.split("/");
-    const id = parts[parts.length - 1];
+    (function () {
+      const path = window.location.pathname;
+      const match = path.match(/^\/share\/(.+)$/);
 
-    window.location.replace(`/wager/${id}`);
+      if (match && match[1]) {
+        const id = match[1];
+        window.location.replace(`/wager/${id}`);
+      } else {
+        window.location.replace("/");
+      }
+    })();
   </script>
 </head>
 
 <body style="background:black;color:white;display:flex;align-items:center;justify-content:center;height:100vh;">
   Opening wager...
 </body>
-
 </html>

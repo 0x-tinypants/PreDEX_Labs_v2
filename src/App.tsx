@@ -22,7 +22,7 @@ import "./ui/nav.css";
 
 export default function App() {
   /* =========================================
-     🔥 THEME INIT
+     THEME INIT
   ========================================= */
   useEffect(() => {
     const saved =
@@ -43,20 +43,50 @@ export default function App() {
   const [showCreate, setShowCreate] = useState(false);
 
   /* =========================================
-     WALLET (ONLY IDENTITY NOW)
+     WALLET
   ========================================= */
   const wallet = useWallet();
-
-  const {
-    address,
-    connectMetaMask,
-    connectPrivy,
-  } = wallet;
+  const { address, connectMetaMask, connectPrivy } = wallet;
 
   /* =========================================
      DATA
   ========================================= */
   const { tiles, loading, onIntent } = useWagers();
+
+  /* =========================================
+     HOME VIEW
+  ========================================= */
+  const Home = (
+    <>
+      <ControlBar
+        onCreateClick={() =>
+          setShowCreate((prev) => !prev)
+        }
+      />
+
+      {showCreate && <CreateWager wallet={wallet} />}
+
+      <div className="tile-feed">
+        {loading && <div>Loading...</div>}
+
+        {!loading && tiles.length === 0 && (
+          <div className="empty-state">
+            No wagers found
+          </div>
+        )}
+
+        {!loading &&
+          tiles.map((tile) => (
+            <Tile
+              key={tile.escrowAddress}
+              tile={tile}
+              viewer={address}
+              onIntent={onIntent}
+            />
+          ))}
+      </div>
+    </>
+  );
 
   /* =========================================
      RENDER
@@ -70,48 +100,15 @@ export default function App() {
             address={address}
             onConnectMetaMask={connectMetaMask}
             onConnectPrivy={connectPrivy}
-          />)}
+          />
+        )}
 
         <Routes>
-          <Route
-            path="/"
-            element={
-              <>
-                <ControlBar
-                  onCreateClick={() =>
-                    setShowCreate((prev) => !prev)
-                  }
-                />
+          <Route path="/" element={Home} />
+          <Route path="/wager/:id" element={<WagerPage />} />
 
-                {showCreate && <CreateWager wallet={wallet} />}
-
-                <div className="tile-feed">
-                  {loading && <div>Loading...</div>}
-
-                  {!loading && tiles.length === 0 && (
-                    <div className="empty-state">
-                      No wagers found
-                    </div>
-                  )}
-
-                  {!loading &&
-                    tiles.map((tile) => (
-                      <Tile
-                        key={tile.escrowAddress}
-                        tile={tile}
-                        viewer={address}
-                        onIntent={onIntent}
-                      />
-                    ))}
-                </div>
-              </>
-            }
-          />
-
-          <Route
-            path="/wager/:id"
-            element={<WagerPage />}
-          />
+          {/* 🔥 SPA SAFETY NET (prevents Vercel 404 issues) */}
+          <Route path="*" element={<WagerPage />} />
         </Routes>
 
         {!isWagerPage && <BottomNav />}

@@ -1,5 +1,7 @@
 {
-  "routes": [
-    { "src": "/share/(.*)", "dest": "/share.html" }
+  "rewrites": [
+    { "source": "/share/:id", "destination": "/share.html" },
+    { "source": "/wager/:id", "destination": "/" },
+    { "source": "/((?!assets|share\\.html|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)", "destination": "/" }
   ]
 }

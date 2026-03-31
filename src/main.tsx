@@ -31,7 +31,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         supportedChains: [sepoliaChain],
       }}
     >
-      <BrowserRouter>
+      <BrowserRouter basename="/">
         <App />
       </BrowserRouter>
     </PrivyProvider>
