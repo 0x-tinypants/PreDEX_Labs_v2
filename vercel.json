@@ -1,7 +1,8 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/wager/(.*)", "destination": "/" },
-    { "source": "/(.*)", "destination": "/" }
+  "routes": [
+    {
+      "src": "^/api/share/(.*)",
+      "dest": "/api/share/[id].ts"
+    }
   ]
 }
