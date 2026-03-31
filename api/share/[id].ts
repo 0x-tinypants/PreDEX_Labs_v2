@@ -27,13 +27,12 @@ export default async function handler(req: Request) {
           <meta property="og:url" content="${redirectUrl}" />
           <meta name="twitter:card" content="summary_large_image" />
 
-          <script>
-            window.location.href = "${redirectUrl}";
-          </script>
+          <!-- 🔥 HARD REDIRECT -->
+          <meta http-equiv="refresh" content="0; url=${redirectUrl}" />
         </head>
 
         <body style="background:black;color:white;display:flex;align-items:center;justify-content:center;height:100vh;">
-          Loading wager...
+          Redirecting to wager...
         </body>
       </html>
       `,
