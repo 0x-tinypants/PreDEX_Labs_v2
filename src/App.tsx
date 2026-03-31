@@ -65,6 +65,33 @@ export default function App() {
   } = wallet;
 
   /* =========================================
+   AUTO FUND ON LOGIN (ONE-TIME PER SESSION)
+========================================= */
+  const [funded, setFunded] = useState(false);
+
+  useEffect(() => {
+    if (!authenticated || !address || funded) return;
+
+    const run = async () => {
+      try {
+        await fetch("/api/fund-user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ address }),
+        });
+
+        setFunded(true);
+      } catch (err) {
+        console.error("Funding failed", err);
+      }
+    };
+
+    run();
+  }, [authenticated, address, funded]);
+
+  /* =========================================
      DATA
   ========================================= */
   const { tiles, loading, onIntent } = useWagers();

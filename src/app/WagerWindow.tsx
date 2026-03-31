@@ -34,7 +34,7 @@ export default function WagerWindow({
       )
     );
 
-const showJoinCTA = isJoinable;
+  const showJoinCTA = isJoinable;
 
   return (
     <div className="wager-window">
@@ -79,12 +79,37 @@ const showJoinCTA = isJoinable;
           <div className="window-actions">
             <button
               className="btn primary"
-              onClick={() =>
-                onIntent?.({
-                  type: "JOIN_WAGER",
-                  escrowAddress: tile.escrowAddress,
-                })
-              }
+              onClick={async () => {
+                try {
+                  // 1. CALL FUND ENDPOINT
+                  const res = await fetch("/api/fund-user", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ address: viewer }),
+                  });
+
+                  const data = await res.json();
+
+                  // 2. IF WE FUNDED → WAIT A BIT
+                  if (data?.status === "funded") {
+                    console.log("Funding tx:", data.txHash);
+
+                    // wait 3–5 seconds for chain confirmation
+                    await new Promise((r) => setTimeout(r, 5000));
+                  }
+
+                  // 3. NOW JOIN WAGER
+                  onIntent?.({
+                    type: "JOIN_WAGER",
+                    escrowAddress: tile.escrowAddress,
+                  });
+
+                } catch (err) {
+                  console.error("Funding before join failed:", err);
+                }
+              }}
             >
               Accept Wager
             </button>
