@@ -5,8 +5,24 @@
       "dest": "/api/$1"
     },
     {
+      "src": "^/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "^/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": "^/robots.txt",
+      "dest": "/robots.txt"
+    },
+    {
+      "src": "^/sitemap.xml",
+      "dest": "/sitemap.xml"
+    },
+    {
       "src": "^/wager/(.*)",
-      "dest": "/"
+      "dest": "/index.html"
     },
     {
       "src": ".*",
