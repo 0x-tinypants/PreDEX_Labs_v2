@@ -136,9 +136,6 @@ export function useWagers() {
   const getTileByAddress = useCallback(
     async (address: string): Promise<UITile | null> => {
       try {
-        console.log("---- DEBUG START ----");
-        console.log("INPUT ADDRESS:", address);
-
         /* =========================================
            1. FACTORY (SOURCE OF TRUTH)
         ========================================= */
@@ -148,13 +145,13 @@ export function useWagers() {
           provider
         );
 
-        const addresses: string[] = await factory.getEscrows();
+        const rawAddresses = await factory.getEscrows();
+        const addresses: string[] = Array.from(rawAddresses);
 
-        console.log("ALL ESCROWS:", addresses);
-        console.log("TOTAL ESCROWS:", addresses.length);
+        if (!addresses.length) return null;
 
         /* =========================================
-           2. MATCH ADDRESS
+           2. CLEAN + MATCH ADDRESS
         ========================================= */
         const cleanInput = address
           .replace(/[^a-fA-F0-9x]/g, "")
@@ -165,51 +162,31 @@ export function useWagers() {
           (a) => a.toLowerCase() === cleanInput
         );
 
-        console.log("MATCH FOUND:", match);
-
-        if (!match) {
-          console.warn("❌ Address NOT found in factory");
-          console.log("---- DEBUG END ----");
-          return null;
-        }
+        if (!match) return null;
 
         /* =========================================
-           3. HYDRATE
+           3. HYDRATE (USE FULL PIPELINE)
         ========================================= */
-        // 🔥 USE FULL PIPELINE INSTEAD OF SINGLE HYDRATE
         const rawAll = await hydrateEscrows(addresses, provider);
 
-        // find the one we need AFTER hydration
         const raw = rawAll.filter(
           (r: any) =>
             r.escrowAddress.toLowerCase() === match.toLowerCase()
         );
 
-        console.log("RAW RESULT:", raw);
-
-        if (!raw.length) {
-          console.warn("❌ Hydrate returned EMPTY");
-          console.log("---- DEBUG END ----");
-          return null;
-        }
+        if (!raw.length) return null;
 
         /* =========================================
            4. NORMALIZE
         ========================================= */
         const mapped = mapRawEscrowsToTiles(raw, []);
 
-        console.log("MAPPED RESULT:", mapped);
-
-        if (!mapped.length) {
-          console.warn("❌ Mapping returned EMPTY");
-          console.log("---- DEBUG END ----");
-          return null;
-        }
+        if (!mapped.length) return null;
 
         let tile = mapped[0];
 
         /* =========================================
-           5. METADATA
+           5. METADATA ENRICHMENT
         ========================================= */
         const meta = await getWagerMetadata(tile.escrowAddress);
 
@@ -220,14 +197,25 @@ export function useWagers() {
           createdAt: meta?.createdAt || 0,
         };
 
-        console.log("FINAL TILE:", tile);
-        console.log("---- DEBUG END ----");
+        /* =========================================
+           6. INJECT INTO STATE (OPTIONAL BUT IDEAL)
+        ========================================= */
+        setTiles((prev) => {
+          const exists = prev.some(
+            (t) =>
+              t.escrowAddress.toLowerCase() ===
+              tile.escrowAddress.toLowerCase()
+          );
 
-        /* TEMP: DO NOT INJECT YET */
+          if (exists) return prev;
+
+          return [tile, ...prev];
+        });
+
         return tile;
 
       } catch (err) {
-        console.error("🔥 getTileByAddress HARD FAIL:", err);
+        console.error("[getTileByAddress] ERROR:", err);
         return null;
       }
     },
