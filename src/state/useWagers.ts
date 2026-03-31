@@ -145,10 +145,20 @@ export function useWagers() {
 
         /* 2. NORMALIZE */
         const mapped = mapRawEscrowsToTiles(raw, []);
+        let tile = mapped[0];
 
-        const tile = mapped[0];
+        if (!tile) return null;
 
-        /* 3. OPTIONAL: inject into state */
+        /* 🔥 3. FETCH METADATA (CRITICAL FIX) */
+        const meta = await getWagerMetadata(tile.escrowAddress);
+
+        tile = {
+          ...tile,
+          statement: meta?.statement || "",
+          createdAt: meta?.createdAt || 0,
+        };
+
+        /* 🔥 4. INJECT INTO STATE */
         setTiles((prev) => {
           const exists = prev.some(
             (t) =>
@@ -169,7 +179,6 @@ export function useWagers() {
     },
     [provider]
   );
-
   /* -----------------------------------------
      PUBLIC API
   ----------------------------------------- */
