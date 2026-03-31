@@ -134,82 +134,93 @@ export function useWagers() {
 
 
   const getTileByAddress = useCallback(
-    async (address: string): Promise<UITile | null> => {
-      try {
-        console.log("[getTileByAddress] SAFE PATH:", address);
+  async (address: string): Promise<UITile | null> => {
+    try {
+      console.log("---- DEBUG START ----");
+      console.log("INPUT ADDRESS:", address);
 
-        /* =========================================
-           1. GET ALL ESCROWS (SOURCE OF TRUTH)
-        ========================================= */
-        const factory = new ethers.Contract(
-          FACTORY_ADDRESS,
-          factoryAbi,
-          provider
-        );
+      /* =========================================
+         1. FACTORY (SOURCE OF TRUTH)
+      ========================================= */
+      const factory = new ethers.Contract(
+        FACTORY_ADDRESS,
+        factoryAbi,
+        provider
+      );
 
-        const addresses: string[] = await factory.getEscrows();
+      const addresses: string[] = await factory.getEscrows();
 
-        /* =========================================
-           2. FIND MATCH
-        ========================================= */
-        const match = addresses.find(
-          (a) => a.toLowerCase() === address.toLowerCase()
-        );
+      console.log("ALL ESCROWS:", addresses);
+      console.log("TOTAL ESCROWS:", addresses.length);
 
-        if (!match) {
-          console.warn("Escrow not found in factory");
-          return null;
-        }
+      /* =========================================
+         2. MATCH ADDRESS
+      ========================================= */
+      const match = addresses.find(
+        (a) => a.toLowerCase() === address.toLowerCase()
+      );
 
-        /* =========================================
-           3. HYDRATE USING WORKING PATH
-        ========================================= */
-        const raw = await hydrateEscrows([match], provider);
+      console.log("MATCH FOUND:", match);
 
-        if (!raw.length) return null;
-
-        /* =========================================
-           4. FULL NORMALIZATION (MATCH MAIN PIPELINE)
-        ========================================= */
-        const mapped = await Promise.all(
-          mapRawEscrowsToTiles(raw, []).map(async (tile) => {
-            const meta = await getWagerMetadata(tile.escrowAddress);
-
-            return {
-              ...tile,
-              escrowAddress: tile.escrowAddress.toLowerCase(),
-              statement: meta?.statement || "",
-              createdAt: meta?.createdAt || 0,
-            };
-          })
-        );
-
-        const tile = mapped[0];
-        if (!tile) return null;
-
-        /* =========================================
-           5. INJECT INTO STATE
-        ========================================= */
-        setTiles((prev) => {
-          const exists = prev.some(
-            (t) =>
-              t.escrowAddress.toLowerCase() ===
-              tile.escrowAddress.toLowerCase()
-          );
-
-          if (exists) return prev;
-
-          return [tile, ...prev];
-        });
-
-        return tile;
-      } catch (err) {
-        console.error("[getTileByAddress] FAIL", err);
+      if (!match) {
+        console.warn("❌ Address NOT found in factory");
+        console.log("---- DEBUG END ----");
         return null;
       }
-    },
-    [provider]
-  );
+
+      /* =========================================
+         3. HYDRATE
+      ========================================= */
+      const raw = await hydrateEscrows([match], provider);
+
+      console.log("RAW RESULT:", raw);
+
+      if (!raw.length) {
+        console.warn("❌ Hydrate returned EMPTY");
+        console.log("---- DEBUG END ----");
+        return null;
+      }
+
+      /* =========================================
+         4. NORMALIZE
+      ========================================= */
+      const mapped = mapRawEscrowsToTiles(raw, []);
+
+      console.log("MAPPED RESULT:", mapped);
+
+      if (!mapped.length) {
+        console.warn("❌ Mapping returned EMPTY");
+        console.log("---- DEBUG END ----");
+        return null;
+      }
+
+      let tile = mapped[0];
+
+      /* =========================================
+         5. METADATA
+      ========================================= */
+      const meta = await getWagerMetadata(tile.escrowAddress);
+
+      tile = {
+        ...tile,
+        escrowAddress: tile.escrowAddress.toLowerCase(),
+        statement: meta?.statement || "",
+        createdAt: meta?.createdAt || 0,
+      };
+
+      console.log("FINAL TILE:", tile);
+      console.log("---- DEBUG END ----");
+
+      /* TEMP: DO NOT INJECT YET */
+      return tile;
+
+    } catch (err) {
+      console.error("🔥 getTileByAddress HARD FAIL:", err);
+      return null;
+    }
+  },
+  [provider]
+);
   /* -----------------------------------------
      PUBLIC API
   ----------------------------------------- */
