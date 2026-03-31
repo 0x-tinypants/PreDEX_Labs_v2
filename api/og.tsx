@@ -1,5 +1,5 @@
 import { ImageResponse } from "@vercel/og";
-import type { CSSProperties } from "react";
+import React from "react";
 
 export const runtime = "edge";
 
@@ -9,23 +9,78 @@ export default async function handler(req: Request) {
     const escrow = url.searchParams.get("escrow") || "UNKNOWN";
 
     return new ImageResponse(
-      <div style={base}>
-        <div style={card}>
-          <div style={title}>PreDEX</div>
+      React.createElement(
+        "div",
+        {
+          style: {
+            width: "1200px",
+            height: "630px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            background: "#0a0a0a",
+          },
+        },
+        React.createElement(
+          "div",
+          {
+            style: {
+              width: "900px",
+              padding: "40px",
+              borderRadius: "20px",
+              border: "2px solid #d9ff00",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "20px",
+            },
+          },
+          React.createElement(
+            "div",
+            {
+              style: {
+                color: "#d9ff00",
+                fontSize: "48px",
+                fontWeight: 700,
+              },
+            },
+            "PreDEX"
+          ),
 
-          <div style={match}>
-            Wager Invite
-          </div>
+          React.createElement(
+            "div",
+            {
+              style: {
+                color: "#ffffff",
+                fontSize: "36px",
+              },
+            },
+            "Wager Invite"
+          ),
 
-          <div style={amount}>
-            {escrow.slice(0, 6)}...{escrow.slice(-4)}
-          </div>
+          React.createElement(
+            "div",
+            {
+              style: {
+                color: "#58dd53",
+                fontSize: "40px",
+              },
+            },
+            `${escrow.slice(0, 6)}...${escrow.slice(-4)}`
+          ),
 
-          <div style={status}>
-            Tap to View
-          </div>
-        </div>
-      </div>,
+          React.createElement(
+            "div",
+            {
+              style: {
+                color: "#999",
+                fontSize: "22px",
+              },
+            },
+            "Tap to View"
+          )
+        )
+      ),
       {
         width: 1200,
         height: 630,
@@ -36,46 +91,3 @@ export default async function handler(req: Request) {
     return new Response("OG failed", { status: 500 });
   }
 }
-
-/* ========================= */
-
-const base: CSSProperties = {
-  width: "1200px",
-  height: "630px",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  background: "#0a0a0a",
-};
-
-const card: CSSProperties = {
-  width: "900px",
-  padding: "40px",
-  borderRadius: "20px",
-  border: "2px solid #d9ff00",
-  display: "flex",
-  flexDirection: "column",
-  gap: "20px",
-  alignItems: "center",
-};
-
-const title: CSSProperties = {
-  color: "#d9ff00",
-  fontSize: "48px",
-  fontWeight: 700,
-};
-
-const match: CSSProperties = {
-  color: "#ffffff",
-  fontSize: "36px",
-};
-
-const amount: CSSProperties = {
-  color: "#58dd53",
-  fontSize: "42px",
-};
-
-const status: CSSProperties = {
-  color: "#999",
-  fontSize: "22px",
-};
