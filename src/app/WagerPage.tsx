@@ -11,9 +11,9 @@ import WagerWindow from "./WagerWindow";
 import "./window.css";
 
 export default function WagerPage({ wagerId }: { wagerId: string }) {
-  const { tiles, loading, onIntent, getTileByAddress } = useWagers();
-  const { address, connectPrivy } = useWallet();
+  const { address, connectPrivy, provider } = useWallet();
 
+  const { tiles, loading, onIntent, getTileByAddress } = useWagers(provider);
   const [fetchedTile, setFetchedTile] = useState<UITile | null>(null);
   const [fetching, setFetching] = useState(false);
 

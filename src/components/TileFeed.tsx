@@ -4,9 +4,9 @@ import { useWagers } from "../state/useWagers";
 import { useWallet } from "../state/useWallet";
 
 export default function TileFeed() {
-  const { tiles } = useWagers();
-
   const { provider } = useWallet();
+
+  const { tiles } = useWagers(provider);
 
   // derive viewer address (safe)
   const [viewer, setViewer] = useState<string | undefined>();
