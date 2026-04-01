@@ -30,10 +30,6 @@ export default function Tile({
 
   const isFocus = mode === "focus";
 
-  /* =========================================
-     HELPERS
-  ========================================= */
-
   const short = (addr?: string) =>
     addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "—";
 
@@ -42,7 +38,11 @@ export default function Tile({
     return `${value.toFixed(3)} ETH`;
   };
 
-  const opponent = participants?.find((p) => p !== creator);
+  const opponent = participants?.find(
+    (p) => p.toLowerCase() !== creator.toLowerCase()
+  );
+
+  const isLinkMode = !opponent;
 
   const isParticipant =
     !!viewer &&
@@ -55,17 +55,20 @@ export default function Tile({
   const isProposed = status === "proposed";
   const isResolved = status === "resolved";
 
-  const isExpired = deadline && Date.now() >= deadline;
+  const isExpired = !!deadline && Date.now() >= deadline;
 
   const [expanded, setExpanded] = useState(false);
 
-const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
-  /* =========================================
-     PERMISSIONS
-  ========================================= */
+  const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
 
   const canAccept =
-    !opponent ? viewer !== creator : viewer === opponent;
+    isOpen &&
+    !!viewer &&
+    (
+      isLinkMode
+        ? viewer.toLowerCase() !== creator.toLowerCase()
+        : viewer.toLowerCase() === opponent?.toLowerCase()
+    );
 
   const canPropose =
     isLocked && isExpired && isParticipant;
@@ -75,18 +78,12 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
     !!viewer &&
     viewer.toLowerCase() === proposedWinner?.toLowerCase();
 
-  /* =========================================
-     INTENTS
-  ========================================= */
-
-  const emitIntent = (side: "yes" | "no") => {
+  const emitJoin = () => {
     if (!onIntent) return;
 
     onIntent({
-      type: "ACCEPT",
+      type: "JOIN_WAGER",
       escrowAddress,
-      side,
-      wagerType: type,
     });
   };
 
@@ -109,22 +106,14 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
     });
   };
 
-  /* =========================================
-     ACTION LABEL
-  ========================================= */
-
   const getActionLabel = () => {
-    if (isOpen) return "Choose Side";
-    if (isLocked && !isExpired) return "Waiting for Result";
-    if (isLocked && isExpired) return "Select Winner";
-    if (isProposed) return "Finalizing";
+    if (isOpen) return "Accpect or Decline";
+    if (isLocked && !isExpired) return "Event Pending";
+    if (isLocked && isExpired && opponent) return "Select Winner";
+    if (isProposed) return "Awaiting Claim";
     if (isResolved) return "Complete";
     return "";
   };
-
-  /* =========================================
-     ACTION RENDER (FEED MODE ONLY)
-  ========================================= */
 
   const renderActions = () => {
     if (isOpen) {
@@ -133,7 +122,7 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
           <button
             className="tile-btn yes"
             disabled={!canAccept}
-            onClick={() => emitIntent("yes")}
+            onClick={emitJoin}
           >
             YES
           </button>
@@ -141,25 +130,24 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
           <button
             className="tile-btn no"
             disabled={!canAccept}
-            onClick={() => emitIntent("no")}
+            onClick={emitJoin}
           >
             NO
           </button>
         </div>
       );
     }
-
     if (isLocked && !isExpired) {
       return (
         <div className="tile-actions">
           <button className="tile-btn pending" disabled>
-            Waiting...
+            Waiting for Event
           </button>
         </div>
       );
     }
 
-    if (isLocked && isExpired) {
+    if (isLocked && isExpired && opponent) {
       return (
         <div className="tile-actions-wrapper">
           <div className="tile-actions">
@@ -174,7 +162,7 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
             <button
               className="tile-btn no"
               disabled={!canPropose}
-              onClick={() => emitResolve(opponent!)}
+              onClick={() => emitResolve(opponent)}
             >
               NO
             </button>
@@ -192,7 +180,7 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
       return (
         <div className="tile-actions claim-state">
           <div className="tile-sub">
-            Winner confirmed • You can claim
+            Winner proposed • Awaiting claim
           </div>
 
           {canClaim ? (
@@ -221,16 +209,15 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
     return null;
   };
 
-  /* =========================================
-     TIME
-  ========================================= */
-
   const getTimeRemaining = () => {
     if (!deadline) return "—";
 
     const diff = deadline - Date.now();
 
-    if (diff <= 0) return "Expired";
+    if (diff <= 0) {
+      if (opponent) return "Event Started";
+      return "Expired";
+    }
 
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff / (1000 * 60)) % 60);
@@ -239,37 +226,50 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
   };
 
   const statement = tile.statement || "";
-  /* =========================================
-     RENDER
-  ========================================= */
 
   return (
     <div className="tile">
-
-      {/* HEADER */}
       <div className="tile-row tile-header">
         <span className={`status ${status}`}>
-          {status.toUpperCase()}
+          {(() => {
+            if (isOpen) return "OPEN";
+            if (isLocked && !isExpired) return "LOCKED";
+            if (isLocked && isExpired) return "LIVE";
+            if (isProposed) return "FINALIZING";
+            if (isResolved) return "COMPLETE";
+            return status.toUpperCase();
+          })()}
         </span>
 
         <span className="type">{type}</span>
 
-        <span className="time">{getTimeRemaining()}</span>
+        <span className="time">
+          {(() => {
+            if (!deadline) return "—";
+
+            if (isExpired) {
+              return opponent ? "Event Started" : "Expired";
+            }
+
+            const diff = deadline - Date.now();
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+
+            return `${hours}h ${minutes}m`;
+          })()}
+        </span>
       </div>
 
-      {/* MAIN */}
       <div className="tile-main">
         <div className="matchup">
-          {short(creator)} vs {short(opponent)}
+          {short(creator)} vs {opponent ? short(opponent) : "Open"}
         </div>
 
         <div className="statement">{statement}</div>
       </div>
 
-      {/* 🔥 ACTION BLOCK */}
       <div className="tile-action-block">
         {isFocus ? (
-
           !viewer ? (
             <div
               className="focus-cta connect"
@@ -277,26 +277,23 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
             >
               Connect Wallet to Join
             </div>
-          ) : !isParticipant ? (
+          ) : !isParticipant && canAccept ? (
             <div
               className="focus-cta accept"
-              onClick={() =>
-                onIntent?.({
-                  type: "ACCEPT",
-                  escrowAddress,
-                })
-              }
+              onClick={emitJoin}
             >
               Accept Wager
+            </div>
+          ) : !isParticipant ? (
+            <div className="focus-cta neutral">
+              Not eligible to accept
             </div>
           ) : (
             <div className="focus-cta neutral">
               You're in this wager
             </div>
           )
-
         ) : (
-
           <>
             <div className="tile-action-label">
               {getActionLabel()}
@@ -304,12 +301,9 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
 
             {renderActions()}
           </>
-
         )}
-
       </div>
 
-      {/* FOOTER */}
       <div className="tile-row tile-footer">
         <div className="meta">
           <span>By {short(creator)}</span>
@@ -344,15 +338,12 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
 
       {expanded && (
         <div className="tile-expanded">
-
-          {/* DESCRIPTION (FULL) */}
           {statement && (
             <div className="expanded-description">
               {statement}
             </div>
           )}
 
-          {/* ROW 1 — ESCROW */}
           <div className="expanded-row">
             <div className="label">ESCROW</div>
             <a
@@ -365,50 +356,42 @@ const inviteLink = `${window.location.origin}/api/share/${tile.escrowAddress}`;
             </a>
           </div>
 
-          {/* ROW 2 — CREATOR */}
           <div className="expanded-row">
             <div className="label">CREATOR</div>
             <span>{short(creator)}</span>
           </div>
 
-          {/* ROW 3 — OPPONENT */}
           <div className="expanded-row">
             <div className="label">OPPONENT</div>
             <span>{short(opponent)}</span>
           </div>
 
-          {/* ROW 4 — STATUS */}
           <div className="expanded-row">
             <div className="label">STATUS</div>
             <span>{status.toUpperCase()}</span>
           </div>
 
-          {/* ROW 5 — STAKE */}
           <div className="expanded-row">
             <div className="label">STAKE</div>
             <span>{formatEth(tile.stake)}</span>
           </div>
 
-          {/* ROW 6 — POT */}
           <div className="expanded-row">
             <div className="label">POT</div>
             <span>{formatEth(tile.pot)}</span>
           </div>
 
-          {/* ROW 7 — DEADLINE */}
           <div className="expanded-row">
             <div className="label">DEADLINE</div>
             <span>{getTimeRemaining()}</span>
           </div>
 
-          {/* ROW 8 — WINNER */}
           {winner && (
             <div className="expanded-row">
               <div className="label">WINNER</div>
               <span>🏆 {short(winner)}</span>
             </div>
           )}
-
         </div>
       )}
     </div>

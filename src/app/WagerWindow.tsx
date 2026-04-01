@@ -94,7 +94,6 @@ export default function WagerWindow({
 
                   // 2. IF WE FUNDED → WAIT A BIT
                   if (data?.status === "funded") {
-                    console.log("Funding tx:", data.txHash);
 
                     // wait 3–5 seconds for chain confirmation
                     await new Promise((r) => setTimeout(r, 5000));

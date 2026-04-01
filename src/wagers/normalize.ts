@@ -3,30 +3,70 @@ import type { RawEscrowRecord } from "./raw.types";
 import { mapStateToStatus } from "./status";
 
 /* =========================================================
+   CONSTANTS
+========================================================= */
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+/* =========================================================
    HELPERS
 ========================================================= */
 
-function normalizeTimestamp(ts?: number): number | undefined {
-   if (ts == null) return undefined;
-   return ts < 1e12 ? ts * 1000 : ts;
+/**
+ * Normalize timestamp → always ms or null
+ */
+function normalizeTimestamp(ts?: number): number | null {
+  if (ts == null) return null;
+  return ts < 1e12 ? ts * 1000 : ts;
+}
+
+/**
+ * Normalize address (safe lowercase)
+ */
+function normalizeAddress(addr?: string): string {
+  return addr ? addr.toLowerCase() : "";
+}
+
+/**
+ * Normalize participants:
+ * - lowercase
+ * - remove duplicates
+ * - remove ZERO address
+ */
+function normalizeParticipants(list?: string[]): string[] {
+  return Array.from(
+    new Set(
+      (list ?? [])
+        .map((p) => normalizeAddress(p))
+        .filter((p) => p && p !== ZERO_ADDRESS)
+    )
+  );
 }
 
 /**
  * Convert wei → ETH (safe for UI)
  */
 function weiToEth(value?: string | bigint | number): number {
-   if (value == null) return 0;
+  if (value == null) return 0;
 
-   try {
-      const numeric =
-         typeof value === "string"
-            ? Number(value)
-            : Number(value);
+  try {
+    const numeric =
+      typeof value === "string"
+        ? Number(value)
+        : Number(value);
 
-      return numeric / 1e18;
-   } catch {
-      return 0;
-   }
+    return numeric / 1e18;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Check valid non-zero address
+ */
+function isValidAddress(addr?: string): boolean {
+  if (!addr) return false;
+  return addr.toLowerCase() !== ZERO_ADDRESS;
 }
 
 /* =========================================================
@@ -34,94 +74,108 @@ function weiToEth(value?: string | bigint | number): number {
 ========================================================= */
 
 export function normalizeToTile(record: RawEscrowRecord): UITile {
-   /* =============================
-      Identity + Participants
-   ============================= */
+  /* =============================
+     Identity + Participants
+  ============================= */
 
-   const participants = record.participants ?? [];
-   const creator = record.creator ?? "";
+  const creator = normalizeAddress(record.creator);
+  const participants = normalizeParticipants(record.participants);
 
-   /* =============================
-      State
-   ============================= */
+  // opponent = any non-creator participant
+  const opponent =
+    participants.find((p) => p !== creator) || null;
 
-   const status = mapStateToStatus(record.state);
+  /* =============================
+     Timing
+  ============================= */
 
-   /* =============================
-      Timing
-   ============================= */
+  const deadline = normalizeTimestamp(record.deadline);
+  const createdAt = normalizeTimestamp(record.createdAt) || 0;
 
-   const deadline = normalizeTimestamp(record.deadline);
-   const createdAt = normalizeTimestamp(record.createdAt);
+  /* =============================
+     Resolution Flags
+  ============================= */
 
-   /* =============================
-      Resolution Logic (CRITICAL)
-   ============================= */
+  const hasWinner = isValidAddress(record.winner);
+  const hasProposedWinner = isValidAddress(record.proposedWinner);
 
-   const proposedWinner =
-      status === "proposed" ? record.proposedWinner : undefined;
+  /* =============================
+     Status Mapping
+  ============================= */
 
-   const finalWinner =
-      status === "resolved"
-         ? record.winner ?? record.proposedWinner
-         : undefined;
+  let status: "open" | "locked" | "proposed" | "resolved";
 
-   /* =============================
-      Financials
-   ============================= */
+  if (hasWinner) {
+    status = "resolved";
+  } else if (hasProposedWinner) {
+    status = "proposed";
+  } else {
+    const baseStatus = mapStateToStatus(record.state);
 
-   const stakeEth = weiToEth(record.stake);
-   const potEth = stakeEth * 2;
+    if (baseStatus === "awaiting_opponent") {
+      status = "open";
+    } else {
+      status = baseStatus as "open" | "locked" | "resolved";
+    }
+  }
 
-   /* =============================
-      Debug (dev only)
-   ============================= */
+  // 🔒 Guard: cannot be locked without opponent
+  if (status === "locked" && !opponent) {
+    status = "open";
+  }
 
-   if (process.env.NODE_ENV !== "production") {
-      console.log("🧠 NORMALIZED TILE", {
-         escrow: record.escrowAddress,
-         state: record.state,
-         status,
-         stakeEth,
-         potEth,
-         winner: record.winner,
-         proposedWinner,
-         finalWinner,
-      });
-   }
+  /* =============================
+     Resolution Fields
+  ============================= */
 
-   /* =============================
-      FINAL TILE
-   ============================= */
+  const proposedWinner = hasProposedWinner
+    ? normalizeAddress(record.proposedWinner)
+    : undefined;
 
-   return {
-      /* Identity */
-      id: record.escrowAddress,
-      escrowAddress: record.escrowAddress,
-      type: record.type === "OPEN" ? "OPEN" : "P2P",
+  const winner = hasWinner
+    ? normalizeAddress(record.winner)
+    : undefined;
 
-      /* Participants */
-      creator,
-      participants,
+  /* =============================
+     Financials
+  ============================= */
 
-      /* State */
-      status,
+  const stake = weiToEth(record.stake);
+  const pot = stake * 2;
 
-      /* Timing */
-      createdAt,
-      deadline,
+  /* =============================
+     Debug (dev only)
+  ============================= */
 
-      /* Resolution */
-      proposedWinner,
-      winner: finalWinner,
+  if (process.env.NODE_ENV !== "production") {
+  }
 
-      /* Financials */
-      stake: stakeEth,
-      pot: potEth,
+  /* =============================
+     FINAL TILE
+  ============================= */
 
-      /* Debug */
-      raw: record,
-   };
+  return {
+    id: normalizeAddress(record.escrowAddress),
+    escrowAddress: normalizeAddress(record.escrowAddress),
+
+    type: record.type === "OPEN" ? "OPEN" : "P2P",
+
+    creator,
+    participants,
+
+    status,
+
+    createdAt,
+    deadline,
+
+    proposedWinner,
+    winner,
+
+    stake,
+    pot,
+
+    raw: record,
+  };
 }
 
 /* =========================================================
@@ -129,21 +183,23 @@ export function normalizeToTile(record: RawEscrowRecord): UITile {
 ========================================================= */
 
 export function mapRawEscrowsToTiles(
-   records: RawEscrowRecord[],
-   prevTiles: UITile[] = []
+  records: RawEscrowRecord[],
+  prevTiles: UITile[] = []
 ): UITile[] {
-   return records.map((record) => {
-      const base = normalizeToTile(record);
+  return records.map((record) => {
+    const base = normalizeToTile(record);
 
-      const prev = prevTiles.find(
-         (t) => t.escrowAddress === record.escrowAddress
-      );
+    const prev = prevTiles.find(
+      (t) =>
+        t.escrowAddress.toLowerCase() ===
+        record.escrowAddress.toLowerCase()
+    );
 
-      return {
-         ...base,
+    return {
+      ...base,
 
-         /* Preserve transient UI state */
-         proposalTimestamp: prev?.proposalTimestamp,
-      };
-   });
+      // preserve UI-only state
+      proposalTimestamp: prev?.proposalTimestamp,
+    };
+  });
 }

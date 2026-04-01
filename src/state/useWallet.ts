@@ -62,7 +62,6 @@ export function useWallet() {
         setProvider(provider);
         setAddress(addr);
 
-        console.log("✅ wallet ready:", addr);
       } catch (err) {
         console.error("Wallet setup error:", err);
       }
@@ -93,7 +92,6 @@ export function useWallet() {
       setProvider(provider);
       setAddress(addr);
 
-      console.log("✅ MetaMask connected:", addr);
     } catch (err) {
       console.error("MetaMask error:", err);
     } finally {
@@ -111,7 +109,6 @@ export function useWallet() {
 
     await logout();
 
-    console.log("❌ Wallet disconnected");
   };
 
   return {

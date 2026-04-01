@@ -43,13 +43,7 @@ export async function hydrateEscrows(
           contract.proposedWinner().catch(() => null),
           contract.stakeAmount().catch(() => null), // ✅ FIXED
         ]);
-        console.log("CHAIN READ:", {
-          escrow: address,
-          state: Number(stateRaw),
-          winnerRaw,
-          proposedWinnerRaw,
-        });
-
+       
         /* =========================================
            NORMALIZE VALUES
         ========================================= */
@@ -90,7 +84,6 @@ export async function hydrateEscrows(
           stake: stakeRaw.toString(),
         };
 
-        console.log("✔ Hydrated:", record);
         console.groupEnd();
 
         return record;
@@ -110,7 +103,6 @@ export async function hydrateEscrows(
     (r): r is RawEscrowRecord => r !== null
   );
 
-  console.log("Total hydrated:", filtered.length);
   console.groupEnd();
 
   return filtered;

@@ -15,7 +15,6 @@ export default function ControlBar({ onCreateClick }: Props) {
       <button
         className="btn btn-create"
         onClick={() => {
-          console.log("TOGGLE CLICK");
           onCreateClick();
         }}
       >

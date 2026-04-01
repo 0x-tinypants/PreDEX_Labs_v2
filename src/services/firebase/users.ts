@@ -22,9 +22,7 @@ export async function createUserIfNotExists(user: {
         createdAt: Date.now(),
       });
 
-      console.log("✅ New user created:", user.uid);
     } else {
-      console.log("👤 Existing user:", user.uid);
     }
   } catch (err) {
     console.error("createUserIfNotExists error:", err);
@@ -45,9 +43,7 @@ export async function attachWalletToUser(
       walletAddress,
     });
 
-    console.log("🔗 Wallet attached:", walletAddress);
   } catch (err) {
-    console.error("attachWalletToUser error:", err);
   }
 }
 
@@ -84,8 +80,6 @@ export async function updateBalance(
       balance: newBalance,
     });
 
-    console.log("💰 Balance updated:", newBalance);
   } catch (err) {
-    console.error("updateBalance error:", err);
   }
 }

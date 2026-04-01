@@ -1,5 +1,3 @@
-// src/components/CreateWager.tsx
-
 import { useState } from "react";
 import { ethers } from "ethers";
 import { createEscrow } from "../services/contracts/factory";
@@ -8,22 +6,17 @@ import { createWagerMetadata } from "../services/firebase/wagers";
 export default function CreateWager({ wallet }: any) {
   const { provider } = wallet;
 
-  const [type, setType] = useState<"P2P" | "LINK">("P2P");
   const [statement, setStatement] = useState("");
   const [deadline, setDeadline] = useState("");
   const [opponent, setOpponent] = useState("");
   const [amount, setAmount] = useState("");
+  const [generateLink, setGenerateLink] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     try {
       if (!statement || !deadline || !amount) {
         alert("Please fill all required fields");
-        return;
-      }
-
-      if (type === "P2P" && !opponent) {
-        alert("Opponent required for P2P wager");
         return;
       }
 
@@ -50,13 +43,20 @@ export default function CreateWager({ wallet }: any) {
       const creatorAddress = await signer.getAddress();
 
       /* =========================================
-         🔥 UNIFIED ESCROW CREATION (P2P + LINK)
+         🔥 UNIFIED OPPONENT LOGIC
       ========================================= */
 
       const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-      const finalOpponent =
-        type === "LINK" ? ZERO_ADDRESS : opponent;
+      // If opponent provided → direct
+      // If not → link mode
+      const finalOpponent = opponent
+        ? opponent
+        : ZERO_ADDRESS;
+
+      /* =========================================
+         CREATE ESCROW
+      ========================================= */
 
       const { receipt } = await createEscrow(provider, {
         opponent: finalOpponent,
@@ -67,6 +67,7 @@ export default function CreateWager({ wallet }: any) {
       /* =========================================
          EXTRACT ESCROW ADDRESS
       ========================================= */
+
       let escrowAddress: string | null = null;
 
       const iface = new ethers.Interface([
@@ -103,27 +104,25 @@ export default function CreateWager({ wallet }: any) {
       }
 
       /* =========================================
-         FIREBASE WRITE (KEYED BY REAL ADDRESS)
+         FIREBASE WRITE (SINGLE MODEL)
       ========================================= */
 
       await createWagerMetadata(escrowAddress, {
         statement,
         creator: creatorAddress,
-        opponent: type === "LINK" ? undefined : opponent,
+        opponent: opponent || undefined, // null → undefined
         amount,
-        type,
-        status: type === "LINK" ? "awaiting_opponent" : "pending",
+        type: "P2P", // single type for now
+        status: "awaiting_opponent", // ALWAYS start here
         createdAt: Date.now(),
       });
 
       /* =========================================
-         LINK GENERATION (ONLY FOR LINK)
+         LINK GENERATION (OPTIONAL)
       ========================================= */
 
-      if (type === "LINK") {
-const link = `${window.location.origin}/?wager=${escrowAddress}`;
-
-        console.log("🔗 SHARE LINK:", link);
+      if (!opponent || generateLink) {
+        const link = `${window.location.origin}/?wager=${escrowAddress}`;
         prompt("Share this link:", link);
       }
 
@@ -135,6 +134,7 @@ const link = `${window.location.origin}/?wager=${escrowAddress}`;
       setDeadline("");
       setOpponent("");
       setAmount("");
+      setGenerateLink(false);
 
       setTimeout(() => {
         window.location.reload();
@@ -150,23 +150,6 @@ const link = `${window.location.origin}/?wager=${escrowAddress}`;
 
   return (
     <div className="create-wager-panel">
-      <div className="cw-section">
-        <p>Type</p>
-        <div className="cw-row">
-          <button
-            className={`btn ${type === "P2P" ? "btn-active" : ""}`}
-            onClick={() => setType("P2P")}
-          >
-            P2P
-          </button>
-          <button
-            className={`btn ${type === "LINK" ? "btn-active" : ""}`}
-            onClick={() => setType("LINK")}
-          >
-            LINK
-          </button>
-        </div>
-      </div>
 
       <div className="cw-section">
         <p>Wager</p>
@@ -187,17 +170,23 @@ const link = `${window.location.origin}/?wager=${escrowAddress}`;
       </div>
 
       <div className="cw-section">
-        <p>Opponent</p>
+        <p>Opponent (optional)</p>
         <input
           value={opponent}
           onChange={(e) => setOpponent(e.target.value)}
-          placeholder={
-            type === "LINK"
-              ? "Generated via link"
-              : "0x..."
-          }
-          disabled={type === "LINK"}
+          placeholder="0x... (leave empty to generate link)"
         />
+      </div>
+
+      <div className="cw-section">
+        <label style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <input
+            type="checkbox"
+            checked={generateLink}
+            onChange={(e) => setGenerateLink(e.target.checked)}
+          />
+          Generate share link
+        </label>
       </div>
 
       <div className="cw-section">

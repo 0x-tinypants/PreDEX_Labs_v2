@@ -10,8 +10,6 @@ import { hydrateEscrows } from "./hydrateEscrows";
 import { mapRawEscrowsToTiles } from "../wagers/normalize";
 import { getWagerMetadata } from "../services/firebase/wagers";
 
-import { useWallet } from "./useWallet";
-
 /* =========================================================
    CONFIG
 ========================================================= */
@@ -25,12 +23,10 @@ const factoryAbi = (factoryJson as any).abi;
    HOOK
 ========================================================= */
 
-export function useWagers() {
+export function useWagers(walletProvider: any) {
   const [tiles, setTiles] = useState<UITile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const { provider: walletProvider } = useWallet();
 
   const providerRef = useRef<ethers.JsonRpcProvider | null>(null);
 
@@ -41,8 +37,8 @@ export function useWagers() {
   const provider = providerRef.current;
 
   /* =========================================================
-     LOAD
-  ========================================================= */
+   LOAD
+========================================================= */
 
   const load = useCallback(async () => {
     console.group("[useWagers] LOAD");
@@ -50,9 +46,6 @@ export function useWagers() {
     try {
       setLoading(true);
       setError(null);
-
-      const block = await provider.getBlockNumber();
-      console.log("Connected → block", block);
 
       const factory = new ethers.Contract(
         FACTORY_ADDRESS,
@@ -67,10 +60,15 @@ export function useWagers() {
         return;
       }
 
+      // 🔁 hydrate raw escrow data from chain
       const raw = await hydrateEscrows(addresses, provider);
 
-      const mapped = await Promise.all(
-        mapRawEscrowsToTiles(raw, []).map(async (tile) => {
+      // 🔁 normalize ONCE (source of truth)
+      const baseTiles = mapRawEscrowsToTiles(raw, []);
+
+      // 🔁 enrich with firebase metadata ONLY
+      const enriched = await Promise.all(
+        baseTiles.map(async (tile) => {
           const meta = await getWagerMetadata(tile.escrowAddress);
 
           return {
@@ -81,8 +79,9 @@ export function useWagers() {
         })
       );
 
-      const sorted = mapped.sort(
-        (a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0)
+      // 🔁 sort newest first
+      const sorted = enriched.sort(
+        (a, b) => (b.createdAt || 0) - (a.createdAt || 0)
       );
 
       setTiles(sorted);
@@ -121,15 +120,6 @@ export function useWagers() {
       try {
         const clean = address.toLowerCase().trim();
 
-
-        if (clean.startsWith("temp_")) {
-          console.error("❌ Temp wagers are deprecated");
-          return null;
-        }
-        /* =========================================
-           ON-CHAIN FLOW
-        ========================================= */
-
         const factory = new ethers.Contract(
           FACTORY_ADDRESS,
           factoryAbi,
@@ -159,7 +149,6 @@ export function useWagers() {
 
         tile = {
           ...tile,
-          escrowAddress: tile.escrowAddress.toLowerCase(),
           statement: meta?.statement || "",
           createdAt: meta?.createdAt || 0,
         };
@@ -190,20 +179,11 @@ export function useWagers() {
      JOIN WAGER
   ========================================================= */
 
-  /* =========================================================
-   JOIN WAGER
-========================================================= */
-
   const joinWager = async (escrowAddress: string) => {
     console.group("[JOIN_WAGER]");
-    console.log("👉 Incoming escrow:", escrowAddress);
 
     try {
-      // 🔒 prevent double execution
-      if ((window as any).__JOINING) {
-        console.log("⛔ Already joining — skipping duplicate call");
-        return;
-      }
+      if ((window as any).__JOINING) return;
       (window as any).__JOINING = true;
 
       if (!walletProvider) {
@@ -211,20 +191,6 @@ export function useWagers() {
       }
 
       const signer = await walletProvider.getSigner();
-      const user = await signer.getAddress();
-
-      console.log("👤 Active wallet:", user);
-
-
-      // ❌ TEMP FLOW REMOVED — ALL WAGERS MUST BE REAL ESCROWS NOW
-      if (escrowAddress.startsWith("temp_")) {
-        throw new Error("Invalid wager: temp IDs are no longer supported");
-      }
-      /* =========================================
-         NORMAL FLOW (EXISTING ESCROW)
-      ========================================= */
-
-      console.log("🔁 Joining existing escrow");
 
       const contract = new ethers.Contract(
         escrowAddress,
@@ -233,13 +199,9 @@ export function useWagers() {
       );
 
       const stake = await contract.stakeAmount();
-      console.log("💵 Stake amount:", stake.toString());
 
       const tx = await contract.deposit({ value: stake });
-      console.log("📤 TX:", tx.hash);
-
       await tx.wait();
-      console.log("✅ Joined successfully");
 
       return { success: true };
 
@@ -258,11 +220,31 @@ export function useWagers() {
 
   const handleIntent = useCallback(async (intent: any) => {
     try {
+
+      console.group("🔥 INTENT DEBUG");
+
+      console.log("intent.type:", intent?.type);
+      console.log("escrow:", intent?.escrowAddress);
+      console.log("walletProvider exists:", !!walletProvider);
+
+      try {
+        if (walletProvider) {
+          const signer = await walletProvider.getSigner();
+          const addr = await signer.getAddress();
+          console.log("active wallet:", addr);
+        } else {
+          console.log("active wallet: NONE");
+        }
+      } catch (e) {
+        console.log("wallet error:", e);
+      }
+
+      console.groupEnd();
+
       if (intent.type === "JOIN_WAGER") {
         const res = await joinWager(intent.escrowAddress);
 
         if (res?.success) {
-          // 🔥 slight delay so wallet UI finishes cleanly
           setTimeout(() => {
             window.location.href = `/?highlight=${intent.escrowAddress}`;
           }, 800);

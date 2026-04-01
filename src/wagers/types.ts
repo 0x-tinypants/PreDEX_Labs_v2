@@ -52,8 +52,7 @@ export type UITile = {
      Timing
   ----------------------------------------- */
   createdAt?: number;
-  deadline?: number;
-
+deadline: number | null;
   /* -----------------------------------------
      Resolution Layer
   ----------------------------------------- */

@@ -90,14 +90,6 @@ export default function WagerPage({ wagerId }: { wagerId: string }) {
 
   const isJoinable = !!isLinkWager && !!address && !isCreator;
 
-  console.log("DEBUG WAGER PAGE");
-  console.log("address:", address);
-  console.log("creator:", finalTile?.creator);
-  console.log("participants:", finalTile?.participants);
-  console.log("isLinkWager:", isLinkWager);
-  console.log("isCreator:", isCreator);
-  console.log("isJoinable:", isJoinable);
-
   /* =========================================
      STATES
   ========================================= */

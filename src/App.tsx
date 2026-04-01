@@ -94,7 +94,7 @@ export default function App() {
   /* =========================================
      DATA
   ========================================= */
-  const { tiles, loading, onIntent } = useWagers();
+  const { tiles, loading, onIntent } = useWagers(wallet.provider);
 
   /* =========================================
      HARD BLOCK (WAIT FOR WALLET INIT)
