@@ -22,6 +22,26 @@ import "./ui/nav.css";
 
 export default function App() {
   /* =========================================
+     WALLET (FIRST)
+  ========================================= */
+  const wallet = useWallet();
+  const {
+    address,
+    authenticated,
+    ready,
+    connectMetaMask,
+    connectPrivy,
+    provider,
+  } = wallet;
+
+  /* =========================================
+     STATE (SECOND)
+  ========================================= */
+  const [wagerId, setWagerId] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [funded, setFunded] = useState(false);
+
+  /* =========================================
      THEME INIT
   ========================================= */
   useEffect(() => {
@@ -32,43 +52,24 @@ export default function App() {
   }, []);
 
   /* =========================================
-     ROUTING (LINK FLOW)
+     ROUTING (WAIT FOR WALLET READY)
   ========================================= */
-  const [wagerId, setWagerId] = useState<string | null>(null);
-
   useEffect(() => {
+    if (!ready) return;
+
     const params = new URLSearchParams(window.location.search);
     const id = params.get("wager");
 
     if (id) {
       setWagerId(id);
     }
-  }, []);
+  }, [ready]);
 
   const isWagerFlow = !!wagerId;
 
   /* =========================================
-     UI STATE
+     AUTO FUND
   ========================================= */
-  const [showCreate, setShowCreate] = useState(false);
-
-  /* =========================================
-     WALLET
-  ========================================= */
-  const wallet = useWallet();
-  const {
-    address,
-    authenticated,
-    ready,
-    connectMetaMask,
-    connectPrivy,
-  } = wallet;
-
-  /* =========================================
-   AUTO FUND ON LOGIN (ONE-TIME PER SESSION)
-========================================= */
-  const [funded, setFunded] = useState(false);
-
   useEffect(() => {
     if (!authenticated || !address || funded) return;
 
@@ -94,7 +95,7 @@ export default function App() {
   /* =========================================
      DATA
   ========================================= */
-  const { tiles, loading, onIntent } = useWagers(wallet.provider);
+  const { tiles, loading, onIntent } = useWagers(provider);
 
   /* =========================================
      HARD BLOCK (WAIT FOR WALLET INIT)
@@ -152,17 +153,15 @@ export default function App() {
   return (
     <div className="app-root">
       <div className="app-shell">
-
-        {/* HEADER (LOGIN BUTTONS LIVE HERE) */}
         <Header
           address={address}
           onConnectMetaMask={connectMetaMask}
           onConnectPrivy={connectPrivy}
         />
 
-        {/* 🔥 CORRECT WAGER FLOW */}
+        {/* WAGER FLOW */}
         {isWagerFlow ? (
-          !(authenticated && address) ? (
+          !authenticated ? (
             <LoginGate
               onGoogle={connectPrivy}
               onMetaMask={connectMetaMask}
